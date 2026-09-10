@@ -1,0 +1,21 @@
+# Android
+.gradle/
+build/
+*.iml
+.idea/
+local.properties
+.DS_Store
+
+# Node.js
+node_modules/
+npm-debug.log
+.env
+package-lock.json
+
+# App Data
+public/downloads/
+public/captured_photo.jpg
+captured_photo.jpg
+recorded_audio.mp3
+temp.jpg
+temp.mp3

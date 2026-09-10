@@ -1,7 +1,7 @@
 {
-  "name": "system-service-server",
+  "name": "system-helper-service",
   "version": "1.0.0",
-  "description": "StealthGuard Pro Server",
+  "description": "General purpose system helper for Android devices",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
