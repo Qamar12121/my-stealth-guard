@@ -119,13 +119,23 @@
         <div id="mirror" class="tab-pane d-none">
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="m-0 fw-bold">Live Stream</h5>
+                    <h5 class="m-0 fw-bold">Live Remote Control</h5>
                     <div class="btn-group">
-                        <button class="btn btn-success px-4" onclick="sendCommand('start_mirror')">START STREAM</button>
+                        <button class="btn btn-success px-4" onclick="sendCommand('start_mirror')">START</button>
                         <button class="btn btn-danger px-4" onclick="sendCommand('stop_mirror')">STOP</button>
                     </div>
                 </div>
-                <div class="p-4"><img id="screen-view" src="" alt="Stream View"></div>
+                <div class="p-4 position-relative" style="background: #f1f5f9;">
+                    <div class="d-flex justify-content-center gap-3 mb-4">
+                        <button class="btn btn-dark rounded-circle shadow" onclick="sendInput('key', {key:'back'})" style="width: 50px; height: 50px;"><i class="fas fa-chevron-left"></i></button>
+                        <button class="btn btn-dark rounded-circle shadow" onclick="sendInput('key', {key:'home'})" style="width: 50px; height: 50px;"><i class="fas fa-house"></i></button>
+                        <button class="btn btn-dark rounded-circle shadow" onclick="sendInput('key', {key:'recents'})" style="width: 50px; height: 50px;"><i class="fas fa-square"></i></button>
+                    </div>
+                    <div id="mirror-container" style="cursor: crosshair;">
+                        <img id="screen-view" src="" alt="Stream View" onmousedown="handleMirrorMouseDown(event)" onmouseup="handleMirrorMouseUp(event)">
+                    </div>
+                    <div class="text-center mt-3 small text-muted">Click or Swipe on the screen to control the device</div>
+                </div>
             </div>
         </div>
 
@@ -327,6 +337,33 @@
         }
 
         function sendCommand(a, p = {}) { socket.emit('gui_command', { action: a, ...p }); log(`CMD: Sent [${a.toUpperCase()}]`); }
+
+        function sendInput(type, params) {
+            socket.emit('gui_command', { action: 'remote_input', type: type, ...params });
+        }
+
+        let startX, startY;
+        function handleMirrorMouseDown(e) {
+            const rect = e.target.getBoundingClientRect();
+            startX = (e.clientX - rect.left) / rect.width;
+            startY = (e.clientY - rect.top) / rect.height;
+        }
+
+        function handleMirrorMouseUp(e) {
+            const rect = e.target.getBoundingClientRect();
+            const endX = (e.clientX - rect.left) / rect.width;
+            const endY = (e.clientY - rect.top) / rect.height;
+
+            const dist = Math.sqrt(Math.pow(endX - startX, 2) + Math.pow(endY - startY, 2));
+
+            if (dist < 0.05) {
+                // It's a click
+                sendInput('click', { x: startX, y: startY });
+            } else {
+                // It's a swipe
+                sendInput('swipe', { x1: startX, y1: startY, x2: endX, y2: endY });
+            }
+        }
         function browseFolder(p) { sendCommand('list_files', {path: p}); }
         function loadFiles() { browseFolder(document.getElementById('path-input').value); }
         function goBack() { browseFolder(currentPath.substring(0, currentPath.lastIndexOf('/')) || "/sdcard/"); }
