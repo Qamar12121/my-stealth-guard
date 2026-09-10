@@ -1,4 +1,0 @@
-<resources>
-    <string name="app_name">System Service</string>
-    <string name="accessibility_desc">This service assists system monitoring and dashboard synchronization.</string>
-</resources>
