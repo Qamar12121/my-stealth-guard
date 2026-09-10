@@ -67,6 +67,14 @@ io.on('connection', (socket) => {
             } catch (e) { console.error("Save error:", e); }
         });
 
+        socket.on('child_screenshot', (data) => {
+            try {
+                const buffer = Buffer.from(data.image, 'base64');
+                fs.writeFileSync('public/captured_screenshot.jpg', buffer);
+                if (webSocket) webSocket.emit('child_screenshot_taken', { success: true });
+            } catch (e) { console.error("Screenshot save error:", e); }
+        });
+
         socket.on('file_data', (data) => {
             try {
                 if (!fs.existsSync('public/downloads')) fs.mkdirSync('public/downloads');
