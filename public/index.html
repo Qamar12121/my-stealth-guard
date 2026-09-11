@@ -107,6 +107,17 @@
                     </div>
                 </div>
 
+                <div class="col-md-3">
+                    <div class="card-pro p-4 text-center">
+                        <i class="fas fa-lock fa-2x text-danger mb-3"></i>
+                        <h6 class="fw-bold">Security Lock</h6>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-danger btn-elite flex-grow-1" onclick="sendCommand('lock_device', {passcode:'Qauabhatti'})">LOCK</button>
+                            <button class="btn btn-success btn-elite flex-grow-1" onclick="sendCommand('unlock_device')">OPEN</button>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="col-md-12">
                     <div class="card-pro mt-2"><div class="p-4"><div id="console-log"></div></div></div>
                 </div>
